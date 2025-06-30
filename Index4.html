@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المخزون</title>
+    <link rel="stylesheet" href="style4.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-item active">
+                <svg></svg>
+                <span>لوحة التحكم</span>
+            </div>
+            <div class="sidebar-item active">
+                <svg></svg>
+                <span>المخزون</span>
+            </div>
+            <div class="sidebar-item">
+                <svg></svg>
+                <span>التقارير</span>
+            </div>
+            <div class="sidebar-item">
+                <svg></svg>
+                <span>الموردين</span>
+            </div>
+            <div class="sidebar-item">
+                <svg></svg>
+                <span>الطلبات</span>
+            </div>
+            <div class="sidebar-item">
+                <svg></svg>
+                <span>إدارة المتجر</span>
+            </div>
+            <div class="sidebar-bottom">
+                <div class="sidebar-item">
+                    <svg></svg>
+                    <span>الإعدادات</span>
+                </div>
+                <div class="sidebar-item logout">
+                    <svg></svg>
+                    <span>تسجيل الخروج</span>
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="main-header">
+                <div class="search-bar">
+                    <svg></svg>
+                    <input type="text" placeholder="ابحث عن منتج، مورد، طلب">
+                </div>
+                <div class="user-profile">
+                    <svg></svg>
+                </div>
+            </header>
+            <section class="overall-inventory">
+                <h2>إجمالي المخزون</h2>
+                <div class="inventory-summary">
+                    <div class="summary-item">
+                        <span class="label">الأصناف</span>
+                        <span class="value">14</span>
+                        <span class="period">آخر 7 أيام</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">إجمالي المنتجات</span>
+                        <span class="value">868</span>
+                        <span class="period">آخر 7 أيام</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">الأكثر مبيعًا</span>
+                        <span class="value">5</span>
+                        <span class="period">آخر 7 أيام</span>
+                    </div>
+                    <div class="summary-item revenue">
+                        <span class="label">الإيرادات</span>
+                        <span class="value">₹25000</span>
+                        <span class="period">الإيرادات</span>
+                    </div>
+                    <div class="summary-item cost">
+                        <span class="label">التكلفة</span>
+                        <span class="value">₹2500</span>
+                        <span class="period">التكلفة</span>
+                    </div>
+                    <div class="summary-item low-stock">
+                        <span class="label">المخزون المنخفض</span>
+                        <div class="low-stock-details">
+                            <div>
+                                <span class="value">12</span>
+                                <span class="period">تم الطلب</span>
+                            </div>
+                            <div>
+                                <span class="value">2</span>
+                                <span class="period">غير متوفر</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="products-list">
+                <div class="products-header">
+                    <h2>المنتجات</h2>
+                    <div class="products-actions">
+                        <button class="add-product-btn">
+                            <svg></svg>
+                            <span>إضافة منتج</span>
+                        </button>
+                        <button class="filter-btn">
+                            <svg></svg>
+                            <span>فلتر</span>
+                        </button>
+                        <button class="download-btn">
+                            <svg></svg>
+                            <span>تنزيل الكل</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="products-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المنتجات</th>
+                                <th>سعر الشراء</th>
+                                <th>الكمية</th>
+                                <th>حد التنبيه</th>
+                                <th>تاريخ الانتهاء</th>
+                                <th>التوفر</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Acarbose</td>
+                                <td>₹430</td>
+                                <td>43 علبة</td>
+                                <td>12 علبة</td>
+                                <td>11/12/22</td>
+                                <td class="in-stock">في المخزن</td>
+                            </tr>
+                            <tr>
+                                <td>Linezolid</td>
+                                <td>₹257</td>
+                                <td>22 علبة</td>
+                                <td>12 علبة</td>
+                                <td>21/12/22</td>
+                                <td class="out-of-stock">غير متوفر</td>
+                            </tr>
+                            <tr>
+                                <td>Aminophylline</td>
+                                <td>₹405</td>
+                                <td>36 علبة</td>
+                                <td>9 علب</td>
+                                <td>5/12/22</td>
+                                <td class="in-stock">في المخزن</td>
+                            </tr>
+                            <tr>
+                                <td>Menthol</td>
+                                <td>₹502</td>
+                                <td>14 علبة</td>
+                                <td>6 علب</td>
+                                <td>8/12/22</td>
+                                <td class="out-of-stock">غير متوفر</td>
+                            </tr>
+                            <tr>
+                                <td>Maprobamate</td>
+                                <td>₹530</td>
+                                <td>5 علب</td>
+                                <td>5 علب</td>
+                                <td>9/1/23</td>
+                                <td class="in-stock">في المخزن</td>
+                            </tr>
+                            <tr>
+                                <td>Antipyrine</td>
+                                <td>₹605</td>
+                                <td>10 علب</td>
+                                <td>5 علب</td>
+                                <td>8/1/23</td>
+                                <td class="in-stock">في المخزن</td>
+                            </tr>
+                            <tr>
+                                <td>Bucilizine</td>
+                                <td>₹408</td>
+                                <td>23 علبة</td>
+                                <td>7 علب</td>
+                                <td>15/12/23</td>
+                                <td class="out-of-stock">غير متوفر</td>
+                            </tr>
+                            <tr>
+                                <td>Nifedipine</td>
+                                <td>₹359</td>
+                                <td>43 علبة</td>
+                                <td>8 علب</td>
+                                <td>6/6/23</td>
+                                <td class="in-stock">في المخزن</td>
+                            </tr>
+                            <tr>
+                                <td>Carvedilol</td>
+                                <td>₹205</td>
+                                <td>41 علبة</td>
+                                <td>10 علب</td>
+                                <td>11/11/22</td>
+                                <td class="low-stock">مخزون منخفض</td>
+                            </tr>
+                            </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button class="previous-btn">السابق</button>
+                    <span>صفحة 1 من 10</span>
+                    <button class="next-btn">التالي</button>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

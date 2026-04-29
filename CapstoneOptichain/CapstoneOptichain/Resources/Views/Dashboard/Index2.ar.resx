@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Create An Account" xml:space="preserve"><value>أنشئ حسابًا</value></data>
+  <data name="Start your free trial." xml:space="preserve"><value>ابدأ الفترة التجريبية المجانية.</value></data>
+  <data name="Role" xml:space="preserve"><value>الدور</value></data>
+  <data name="Select Role" xml:space="preserve"><value>اختر الدور</value></data>
+  <data name="Supplier" xml:space="preserve"><value>مورد</value></data>
+  <data name="Only supplier registration is available. Managers and workers are added by admin." xml:space="preserve"><value>التسجيل متاح للموردين فقط. تتم إضافة المدراء والعمال بواسطة المسؤول.</value></data>
+  <data name="Profile Image" xml:space="preserve"><value>صورة الملف الشخصي</value></data>
+  <data name="Click to upload or take photo" xml:space="preserve"><value>انقر للرفع أو التقاط صورة</value></data>
+  <data name="Camera" xml:space="preserve"><value>الكاميرا</value></data>
+  <data name="Upload" xml:space="preserve"><value>رفع</value></data>
+  <data name="Name" xml:space="preserve"><value>الاسم</value></data>
+  <data name="Enter your Name" xml:space="preserve"><value>أدخل اسمك</value></data>
+  <data name="Email" xml:space="preserve"><value>البريد الإلكتروني</value></data>
+  <data name="Enter your email" xml:space="preserve"><value>أدخل بريدك الإلكتروني</value></data>
+  <data name="Password" xml:space="preserve"><value>كلمة المرور</value></data>
+  <data name="Must be at least 6 characters" xml:space="preserve"><value>يجب ألا تقل عن 6 أحرف</value></data>
+  <data name="Confirm Password" xml:space="preserve"><value>تأكيد كلمة المرور</value></data>
+  <data name="Phone Number" xml:space="preserve"><value>رقم الهاتف</value></data>
+  <data name="Enter Your Phone Number" xml:space="preserve"><value>أدخل رقم هاتفك</value></data>
+  <data name="Address" xml:space="preserve"><value>العنوان</value></data>
+  <data name="Enter your Address" xml:space="preserve"><value>أدخل عنوانك</value></data>
+  <data name="Department" xml:space="preserve"><value>القسم</value></data>
+  <data name="Supplier Name" xml:space="preserve"><value>اسم المورد</value></data>
+  <data name="Enter Supplier Name" xml:space="preserve"><value>أدخل اسم المورد</value></data>
+  <data name="Contact Number" xml:space="preserve"><value>رقم التواصل</value></data>
+  <data name="Enter Contact Number" xml:space="preserve"><value>أدخل رقم التواصل</value></data>
+  <data name="Enter Address" xml:space="preserve"><value>أدخل العنوان</value></data>
+  <data name="Sign up" xml:space="preserve"><value>إنشاء حساب</value></data>
+  <data name="Forgot password" xml:space="preserve"><value>هل نسيت كلمة المرور؟</value></data>
+  <data name="Sign in with Google" xml:space="preserve"><value>تسجيل الدخول عبر Google</value></data>
+  <data name="Sign Up With Google as Supplier" xml:space="preserve"><value>إنشاء حساب عبر Google كمورد</value></data>
+  <data name="Already have an account?" xml:space="preserve"><value>لديك حساب بالفعل؟</value></data>
+  <data name="Sign In" xml:space="preserve"><value>تسجيل الدخول</value></data>
+</root>
+
+

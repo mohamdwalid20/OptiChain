@@ -1,0 +1,1389 @@
+@model IEnumerable<CapstoneOptichain.Models.OrderRequest>
+@{
+    ViewData["Title"] = "Order Requests";
+}
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                    <a href="/Dashboard/Index3"><i class="fas fa-chart-line"></i>@T["Dashboard"]</a>
+                    <a href="/Inventory/Index"><i class="fas fa-boxes"></i>@T["Inventory"]</a>
+                    <a href="/Inventory/Index2"><i class="fas fa-file-alt"></i>@T["Reports"]</a>
+                    <a href="/Order/Index"><i class="fas fa-pallet"></i> @T["Orders"]</a>
+                    <a class="active" href="/Dashboard/OrderRequests"><i class="fas fa-clipboard-check"></i> @T["Order Requests"]</a>
+                    <a href="/Category/Index"><i class="fas fa-tags"></i> @T["Categories"]</a>
+                    <a href="/Order/Index2"><i class="fas fa-store-alt"></i> @T["Manage Store"]</a>
+                    <a href="/Manager/Workers"><i class="fas fa-users"></i> @T["Workers"]</a>
+                    <a href="/Manager/Subscription"><i class="fas fa-credit-card"></i> @T["Subscription"]</a>
+                    <a href="/Manager/Support"><i class="fas fa-headset"></i> @T["Support"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Log out"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div id="currentStoreInfo" style="font-weight: bold; color: #007bff; margin-left: 15px;">
+                        @if (!string.IsNullOrEmpty(ViewBag.SelectedStore as string))
+                        {
+                            <span>@T["Current Store"]: @ViewBag.SelectedStore</span>
+                        }
+                        else if (TempData["SelectedStore"] != null)
+                        {
+                            <span>@T["Current Store"]: @TempData["SelectedStore"]</span>
+                        }
+                        else if (Context.Session.GetString("SelectedStore") != null)
+                        {
+                            <span>@T["Current Store"]: @Context.Session.GetString("SelectedStore")</span>
+                        }
+                        else
+                        {
+                            <span>@T["No Store Selected!"]</span>
+                        }
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="page-header">
+                    <h2><i class="fas fa-clipboard-check"></i> @T["Order Requests"]</h2>
+                </div>
+
+
+
+                <div class="card">
+                    <div class="card-body">
+                        @if (!Model.Any())
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> @T["No order requests found."]
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>@T["Request ID"]</th>
+                                            <th>@T["Worker"]</th>
+                                            <th>@T["Order ID"]</th>
+                                            <th>@T["Order Type"]</th>
+                                            <th>@T["Request Date"]</th>
+                                            <th>@T["Status"]</th>
+                                            <th>@T["Actions"]</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var request in Model)
+                                        {
+                                            <tr>
+                                                <td>#@request.RequestId</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center mr-2">
+                                                            <span class="text-white font-weight-bold">@request.Worker.name.Substring(0, 1).ToUpper()</span>
+                                                        </div>
+                                                        <div>
+                                                            <div class="font-weight-bold">@request.Worker.name</div>
+                                                            <small class="text-muted">@request.Worker.email</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <a href="#" class="text-primary font-weight-bold">
+                                                        #@request.OrderId
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(request.Order.OrderType == "Purchase" ? "badge-success" : "badge-primary")">
+                                                        @T[request.Order.OrderType]
+                                                    </span>
+                                                </td>
+                                                <td>@request.RequestDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>
+                                                    @if (request.Status == "Pending")
+                                                    {
+                                                        <span class="badge badge-warning">@T["Pending"]</span>
+                                                    }
+                                                    else if (request.Status == "Approved")
+                                                    {
+                                                        <span class="badge badge-success">@T["Approved"]</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-danger">@T["Rejected"]</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (request.Status == "Pending")
+                                                    {
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-info btn-sm" onclick="showOrderDetails(@request.OrderId)" title="@T["View Order Details"]">
+                                                                <i class="fas fa-eye"></i> @T["Details"]
+                                                            </button>
+                                                            <button type="button" class="btn btn-success btn-sm" onclick="approveRequest(@request.RequestId)">
+                                                                <i class="fas fa-check"></i> @T["Approve"]
+                                                            </button>
+                                                            <button type="button" class="btn btn-danger btn-sm" onclick="rejectRequest(@request.RequestId)">
+                                                                <i class="fas fa-times"></i> @T["Reject"]
+                                                            </button>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-info btn-sm" onclick="showOrderDetails(@request.OrderId)" title="@T["View Order Details"]">
+                                                                <i class="fas fa-eye"></i> @T["Details"]
+                                                            </button>
+                                                        </div>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            @if (request.ResponseDate.HasValue)
+                                                            {
+                                                                <span>@T["Responded"]: @request.ResponseDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                                            }
+                                                            @if (!string.IsNullOrEmpty(request.ManagerNotes))
+                                                            {
+                                                                <br />
+                                                                <span class="text-info">@T["Notes"]: @request.ManagerNotes</span>
+                                                            }
+                                                        </small>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@T["Order Details"]</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="orderDetailsContent">
+                    <!-- Order details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve/Reject Modal -->
+    <div class="modal fade" id="actionModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="actionModalTitle">@T["Action"]</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="actionForm">
+                        <input type="hidden" id="requestId" name="requestId" />
+                        <div class="form-group">
+                            <label for="notes">@T["Notes (Optional)"]:</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="@T["Add any notes about your decision"]..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">@T["Cancel"]</button>
+                    <button type="button" class="btn btn-primary" id="confirmAction">@T["Confirm"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden; 
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .menu a,
+        .sidebar .bottom-menu a {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            text-decoration: none;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sidebar .menu a.active,
+        .sidebar .menu a:hover {
+            background: #eef3ff;
+            color: #007bff;
+        }
+
+        .sidebar .menu a:hover,
+        .sidebar .bottom-menu a:hover {
+            background: #d9e2ef;
+            color: #007bff;
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto; 
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-and-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkToggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .header input {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 300px;
+        }
+
+        .user-profile img {
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px 0;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .card, .graph-card, .stock-card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+
+        .card h4 {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .card-details span {
+            display: block;
+            margin: 4px 0;
+        }
+
+        .table {
+            color: #333;
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            border-bottom: 2px solid #dee2e6;
+            color: #333;
+            font-weight: 600;
+            padding: 12px 8px;
+        }
+
+        .table td {
+            border-top: 1px solid #dee2e6;
+            vertical-align: middle;
+            padding: 12px 8px;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.05);
+        }
+
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .bg-primary {
+            background-color: #007bff !important;
+        }
+
+        .text-white {
+            color: #fff !important;
+        }
+
+        .font-weight-bold {
+            font-weight: bold !important;
+        }
+
+        .text-muted {
+            color: #6c757d !important;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .badge-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            text-decoration: none;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+        }
+
+        .btn-success {
+            color: #fff;
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-danger {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-info {
+            color: #fff;
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+
+        .btn-info:hover {
+            color: #fff;
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+
+        .alert {
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .text-primary {
+            color: #007bff !important;
+        }
+
+        .text-info {
+            color: #17a2b8 !important;
+        }
+
+        .d-flex {
+            display: flex !important;
+        }
+
+        .align-items-center {
+            align-items: center !important;
+        }
+
+        .justify-content-center {
+            justify-content: center !important;
+        }
+
+        .mr-2 {
+            margin-right: 0.5rem !important;
+        }
+
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1055;
+            display: none;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            outline: 0;
+        }
+
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s ease-out;
+            transform: translate(0, -50px);
+        }
+
+        .modal.show .modal-dialog {
+            transform: none;
+        }
+
+        .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 0.5rem;
+            pointer-events: none;
+        }
+
+        .modal-dialog.modal-lg {
+            max-width: 800px;
+        }
+
+        .modal-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            pointer-events: auto;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 0.3rem;
+            outline: 0;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+            border-top-left-radius: calc(0.3rem - 1px);
+            border-top-right-radius: calc(0.3rem - 1px);
+        }
+
+        .modal-title {
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+
+        .modal-body {
+            position: relative;
+            flex: 1 1 auto;
+            padding: 1rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0.75rem;
+            border-top: 1px solid #dee2e6;
+            border-bottom-right-radius: calc(0.3rem - 1px);
+            border-bottom-left-radius: calc(0.3rem - 1px);
+        }
+
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #000;
+            text-shadow: 0 1px 0 #fff;
+            opacity: 0.5;
+            background: none;
+            border: 0;
+            padding: 0;
+        }
+
+        .close:hover {
+            color: #000;
+            text-decoration: none;
+            opacity: 0.75;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            height: calc(1.5em + 0.75rem + 2px);
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            color: #495057;
+            background-color: #fff;
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea.form-control {
+            height: auto;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .card,
+        body.dark-mode .graph-card,
+        body.dark-mode .stock-card,
+        body.dark-mode .sidebar,
+        body.dark-mode .main,
+        body.dark-mode .header input {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border-color: #333;
+        }
+
+        body.dark-mode .sidebar .menu a,
+        body.dark-mode .sidebar .bottom-menu a {
+            color: #ccc;
+        }
+
+        body.dark-mode .sidebar .menu a:hover,
+        body.dark-mode .sidebar .bottom-menu a:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        body.dark-mode .page-header h2 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .table {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .table th {
+            color: #e0e0e0;
+            border-bottom-color: #333;
+        }
+
+        body.dark-mode .table td {
+            border-top-color: #333;
+        }
+
+        body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(255,255,255,.05);
+        }
+
+        body.dark-mode .modal-content {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .modal-header {
+            border-bottom-color: #333;
+        }
+
+        body.dark-mode .modal-footer {
+            border-top-color: #333;
+        }
+
+        body.dark-mode .form-control {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .form-control:focus {
+            background-color: #2d2d2d;
+            border-color: #007bff;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .close {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .close:hover {
+            color: #fff;
+        }
+
+        /* Additional styles for order details modal */
+        .spinner-border {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            vertical-align: text-bottom;
+            border: 0.25em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner-border 0.75s linear infinite;
+        }
+
+        @@keyframes spinner-border {
+            to { transform: rotate(360deg); }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .table-sm td, .table-sm th {
+            padding: 0.3rem;
+        }
+
+        .table-borderless td, .table-borderless th {
+            border: 0;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .text-right {
+            text-align: right !important;
+        }
+
+        .text-primary {
+            color: #007bff !important;
+        }
+
+        .table-active {
+            background-color: rgba(0,0,0,.075) !important;
+        }
+
+        body.dark-mode .table-active {
+            background-color: rgba(255,255,255,.075) !important;
+        }
+
+        .product-image {
+            border: 1px solid #dee2e6;
+        }
+
+        body.dark-mode .product-image {
+            border-color: #444;
+        }
+
+        .product-placeholder {
+            border: 1px solid #dee2e6;
+        }
+
+        body.dark-mode .product-placeholder {
+            border-color: #444;
+            background-color: #2d2d2d !important;
+            color: #aaa !important;
+        }
+
+        .order-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        body.dark-mode .order-info {
+            background-color: #2d2d2d;
+        }
+
+        .badge-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem !important;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .btn-info {
+            color: #fff;
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px 0;
+        }
+    </style>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script src="~/storeContext.js"></script>
+
+    <script>
+        let currentAction = '';
+
+        // Dark mode toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            
+            const darkToggle = document.getElementById('darkToggle');
+            const isDark = localStorage.getItem('theme') === 'dark';
+            
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+
+            darkToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                
+                if (isDarkMode) {
+                    localStorage.setItem('theme', 'dark');
+                    darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    localStorage.setItem('theme', 'light');
+                    darkToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            });
+
+            // Test if Bootstrap modal is available
+            if (typeof $ !== 'undefined' && $.fn.modal) {
+                console.log('Bootstrap modal is available');
+            } else {
+                console.error('Bootstrap modal is NOT available');
+            }
+
+            // Test if jQuery is available
+            if (typeof $ !== 'undefined') {
+                console.log('jQuery is available');
+                
+                // Add modal event listeners for debugging
+                $('#orderDetailsModal').on('show.bs.modal', function (e) {
+                    console.log('Modal show event triggered');
+                });
+                
+                $('#orderDetailsModal').on('shown.bs.modal', function (e) {
+                    console.log('Modal shown event triggered');
+                });
+                
+                $('#orderDetailsModal').on('hide.bs.modal', function (e) {
+                    console.log('Modal hide event triggered');
+                });
+            } else {
+                console.error('jQuery is NOT available');
+            }
+        });
+
+        function showOrderDetails(orderId) {
+            console.log('showOrderDetails called with orderId:', orderId);
+            
+            // Show loading state
+            $('#orderDetailsContent').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">@T["Loading..."]</span>
+                    </div>
+                    <p class="mt-2">@T["Loading order details..."]</p>
+                </div>
+            `);
+            $('#orderDetailsModal').modal('show');
+
+            // Get the exact URL
+            const url = '@Url.Action("GetOrderDetails", "Dashboard")';
+            console.log('URL being called:', url);
+            console.log('Full URL with parameters:', url + '?orderId=' + orderId);
+
+            // Fetch order details from server
+            $.ajax({
+                url: url,
+                method: 'GET',
+                data: { orderId: orderId },
+                dataType: 'json',
+                success: function(response) {
+                    console.log('AJAX success response:', response);
+                    console.log('Response type:', typeof response);
+                    console.log('Response keys:', Object.keys(response));
+                    
+                    if (response.success) {
+                        const order = response.data;
+                        console.log('Order data:', order);
+                        console.log('Order items count:', order.items ? order.items.length : 'No items');
+                        
+                        if (!order.items || order.items.length === 0) {
+                            $('#orderDetailsContent').html(`
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> @T["No items found for this order."]
+                                </div>
+                            `);
+                            return;
+                        }
+                        
+                        let itemsHtml = '';
+                        
+                        order.items.forEach(function(item, index) {
+                            console.log('Processing item', index, ':', item);
+                            const imageHtml = item.imagePath ? 
+                                `<img src="${item.imagePath}" alt="${item.productName}" class="product-image mr-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">` : 
+                                '<div class="product-placeholder mr-2" style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 12px;">IMG</div>';
+                            
+                            itemsHtml += `
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            ${imageHtml}
+                                            <div>
+                                                <div class="font-weight-bold">${item.productName || '@T["Unknown Product"]'}</div>
+                                                <small class="text-muted">${item.categoryName || '@T["No Category"]'}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">${item.quantity || 0}</td>
+                                    <td class="text-right">${(item.unitPrice || 0).toFixed(2)} EGP</td>
+                                    <td class="text-right font-weight-bold">${(item.totalValue || 0).toFixed(2)} EGP</td>
+                                </tr>
+                            `;
+                        });
+
+                        const orderDetailsHtml = `
+                            <div class="order-info mb-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-muted mb-2">@T["Order Information"]</h6>
+                                        <table class="table table-borderless table-sm">
+                                            <tr>
+                                                <td class="text-muted">@T["Order ID"]:</td>
+                                                <td class="font-weight-bold">#${order.orderId}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted">@T["Order Date"]:</td>
+                                                <td>${order.orderDate}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted">@T["Order Type"]:</td>
+                                                <td>
+                                                    <span class="badge ${order.orderType === 'Purchase' ? 'badge-success' : 'badge-primary'}">
+                                                        ${order.orderType}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted">@T["Status"]:</td>
+                                                <td>
+                                                    <span class="badge badge-secondary">${order.status}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted">@T["Store"]:</td>
+                                                <td>${order.storeName || 'N/A'}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="text-muted mb-3">@T["Order Items"] (${order.items.length} @T["items"])</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>@T["Product"]</th>
+                                            <th class="text-center">@T["Quantity"]</th>
+                                            <th class="text-right">@T["Unit Price"]</th>
+                                            <th class="text-right">@T["Total Value"]</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${itemsHtml}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-active">
+                                            <td colspan="3" class="text-right font-weight-bold">@T["Total Order Value"]:</td>
+                                            <td class="text-right font-weight-bold text-primary">${(order.totalOrderValue || 0).toFixed(2)} EGP</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        `;
+                        
+                        console.log('Setting modal content with HTML');
+                        $('#orderDetailsContent').html(orderDetailsHtml);
+                    } else {
+                        console.log('Response was not successful:', response.message);
+                        $('#orderDetailsContent').html(`
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i> ${response.message}
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('AJAX error details:', {
+                        xhr: xhr,
+                        status: status,
+                        error: error,
+                        responseText: xhr.responseText,
+                        statusText: xhr.statusText
+                    });
+                    
+                    let errorMessage = '@T["Failed to load order details. Please try again."]';
+                    if (xhr.responseText) {
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            errorMessage = errorResponse.message || errorMessage;
+                        } catch (e) {
+                            console.log('Could not parse error response as JSON');
+                        }
+                    }
+                    
+                    $('#orderDetailsContent').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> ${errorMessage}<br>
+                            <small>@T["Status:"] ${status} | @T["Error:"] ${error}</small>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function approveRequest(requestId) {
+            currentAction = 'approve';
+            $('#requestId').val(requestId);
+            $('#actionModalTitle').text('Approve Order Request');
+            $('#confirmAction').removeClass('btn-danger').addClass('btn-success').text('Approve');
+            $('#actionModal').modal('show');
+        }
+
+        function rejectRequest(requestId) {
+            currentAction = 'reject';
+            $('#requestId').val(requestId);
+            $('#actionModalTitle').text('Reject Order Request');
+            $('#confirmAction').removeClass('btn-success').addClass('btn-danger').text('Reject');
+            $('#actionModal').modal('show');
+        }
+
+        $('#confirmAction').click(function() {
+            const requestId = $('#requestId').val();
+            const notes = $('#notes').val();
+            
+            if (currentAction === 'approve') {
+                $.post('@Url.Action("ApproveOrderRequest", "Dashboard")', {
+                    requestId: requestId,
+                    notes: notes
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        showAlert('success', response.message);
+                        $('#actionModal').modal('hide');
+                        location.reload();
+                    } else {
+                        showAlert('danger', response.message);
+                    }
+                })
+                .fail(function() {
+                    showAlert('danger', 'An error occurred while processing the request.');
+                });
+            } else if (currentAction === 'reject') {
+                $.post('@Url.Action("RejectOrderRequest", "Dashboard")', {
+                    requestId: requestId,
+                    notes: notes
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        showAlert('success', response.message);
+                        $('#actionModal').modal('hide');
+                        location.reload();
+                    } else {
+                        showAlert('danger', response.message);
+                    }
+                })
+                .fail(function() {
+                    showAlert('danger', '@T["An error occurred while processing the request."]');
+                });
+            }
+        });
+
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `;
+            
+            $('.alert').remove();
+            $('.card-body').prepend(alertHtml);
+        }
+
+        $('#actionModal').on('hidden.bs.modal', function() {
+            $('#actionForm')[0].reset();
+            currentAction = '';
+        });
+
+        // Fix close button functionality
+        $('.close').on('click', function() {
+            $(this).closest('.modal').modal('hide');
+        });
+
+        // Also handle clicking on the X button with data-dismiss
+        $('[data-dismiss="modal"]').on('click', function() {
+            $(this).closest('.modal').modal('hide');
+        });
+
+        // User Profile Dropdown functionality
+        function toggleUserProfile() {
+            const menu = document.getElementById('userProfileMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.user-profile-dropdown');
+            const menu = document.getElementById('userProfileMenu');
+            
+            if (!dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Load shared user profile system
+        const script = document.createElement('script');
+        script.src = '/js/user-profile.js';
+        script.onload = function() {
+            if (typeof initializeUserProfile === 'function') {
+                initializeUserProfile();
+            }
+        };
+        document.head.appendChild(script);
+    </script>
+</body>

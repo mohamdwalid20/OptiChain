@@ -1,0 +1,1733 @@
+﻿@using Newtonsoft.Json
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewBag.Title = "Dashboardworker";
+    var token = Antiforgery.GetAndStoreTokens(Context);
+    var tokenValue = token.RequestToken;
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+</head>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<body>
+    @Html.AntiForgeryToken()
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                    <a class="active"><i class="fas fa-chart-line"></i> @T["Dashboard"]</a>
+                    <a href="/Inventoryworker/Index"><i class="fas fa-boxes"></i> @T["Inventory"]</a>
+                    <a href="/Inventoryworker/Index2"><i class="fas fa-file-alt"></i> @T["Reports"]</a>
+                    <a href="/Orderworker/Index"><i class="fas fa-pallet"></i> @T["Orders"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Log out"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+      
+        <main class="main">
+            <header class="header">
+                <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="@T["Toggle Dark Mode"]">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div id="currentStoreInfo" style="font-weight: bold; color: #007bff; margin-left: 15px;">
+                        @if (!string.IsNullOrEmpty(ViewBag.SelectedStore as string))
+                        {
+                            <span>@T["Current Store"]: @ViewBag.SelectedStore</span>
+                        }
+                        else if (TempData["SelectedStore"] != null)
+                        {
+                            <span>@T["Current Store"]: @TempData["SelectedStore"]</span>
+                        }
+                        else if (Context.Session.GetString("SelectedStore") != null)
+                        {
+                            <span>@T["Current Store"]: @Context.Session.GetString("SelectedStore")</span>
+                        }
+                        else
+                        {
+                            <span>@T["No Store Selected"]!</span>
+                        }
+                    </div>
+                </div>
+            </header>
+            <section class="cards-row">
+                <div class="card">
+                    <h4>@T["Sales Overview"]</h4>
+                    <div class="card-details" id="salesOverview">
+                        <span>@T["Loading sales data..."]</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>@T["Purchase Overview"]</h4>
+                    <div class="card-details" id="purchaseOverview">
+                        <span>@T["Loading purchase data..."]</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>@T["Inventory Summary"]</h4>
+                    <div class="card-details" id="inventorySummary">
+                        <span>@T["Loading inventory data..."]</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>@T["Product Summary"]</h4>
+                    <div class="card-details" id="productSummary">
+                        <span>@T["Loading product data..."]</span>
+                    </div>
+                </div>
+            </section>
+            <section class="middle-section">
+                <div class="graph-container">
+                    <div class="graph-card">
+                        <h4>@T["Sales & Purchase"]</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="graph-card">
+                        <h4>@T["Order Summary"]</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="orderChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="bottom-section">
+                <div class="summary-card">
+                    <h4>@T["Top Selling Products"] <i class="fas fa-crown"></i></h4>
+                    <ul id="topProductsList">
+                        <li>@T["Loading top products..."]</li>
+                    </ul>
+                </div>
+
+                <div class="summary-card">
+                    <h4>@T["Low Stock Alert"] <i class="fas fa-exclamation-triangle"></i></h4>
+                    <ul id="lowStockList">
+                        <li>@T["Checking stock levels..."]</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="~/storeContext.js"></script>
+    <script>
+         let salesChartInstance = null;
+         let orderChartInstance = null;
+         const isDark = localStorage.getItem('theme') === 'dark';
+         const storeId = '@Context.Session.GetString("SelectedStoreId")';
+
+
+        document.addEventListener('DOMContentLoaded', async function () {
+
+
+
+             if (!storeId || storeId === 'null' || storeId.trim() === '') {
+                 showError('@T["No store selected."] <a href="/Orderworker/Index2">@T["Please select a store first"]</a>');
+                 return;
+             }
+
+             if (isDark) {
+                 document.body.classList.add('dark-mode');
+                 document.getElementById('darkToggle').innerHTML = '<i class="fas fa-sun"></i>';
+             }
+
+             try {
+
+                 const responses = await Promise.all([
+                     safeFetch('/api/v1/dashboardworker/sales'),
+                     safeFetch('/api/v1/dashboardworker/orders'),
+                     safeFetch('/api/v1/dashboardworker/summary'),
+                     safeFetch('/api/v1/dashboardworker/top-selling'),
+                     safeFetch('/api/v1/dashboardworker/low-stock')
+                 ]);
+
+
+                 const [salesData, ordersData, summaryData, topProducts, lowStock] = responses;
+
+
+
+          if (topProducts?.error) {
+              console.error('Top products error:', topProducts.error);
+              document.getElementById('topProductsList').innerHTML =
+                  `<li class="error">@T["Error loading top products"]</li>`;
+          } else {
+              populateTopProducts(topProducts);
+          }
+
+          if (lowStock?.error) {
+              console.error('Low stock error:', lowStock.error);
+              document.getElementById('lowStockList').innerHTML =
+                  `<li class="error">@T["Error loading low stock items"]</li>`;
+          } else {
+              populateLowStock(lowStock);
+          }
+
+
+          function populateTopProducts(data) {
+              const list = document.getElementById('topProductsList');
+              if (!data || data.length === 0) {
+                  list.innerHTML = '<li>@T["No top selling products found"]</li>';
+                  return;
+              }
+
+              list.innerHTML = data.slice(0, 5).map(item => `
+                  <li>
+                      <span class="product-name">${item.productName}</span>
+                      <span class="product-sales">${item.totalSold} @T["sold"]</span>
+                  </li>
+              `).join('');
+          }
+
+          function populateLowStock(data) {
+              const list = document.getElementById('lowStockList');
+              if (!data || data.length === 0) {
+                  list.innerHTML = '<li>@T["No low stock items"]</li>';
+                  return;
+              }
+
+              list.innerHTML = data.slice(0, 5).map(item => `
+                  <li>
+                      <span class="product-name">${item.productName}</span>
+                      <span class="stock-level ${item.currentStock < 5 ? 'critical' : 'warning'}">
+                          ${item.currentStock} @T["left"]
+                      </span>
+                  </li>
+              `).join('');
+          }
+
+
+                 if (salesData?.error) {
+                     console.error('Sales data error:', salesData.error);
+                     handleChartError('salesChart', '@T["Sales & Purchase"]', salesData.error);
+                 } else {
+
+                     createOrUpdateChart('salesChart', 'bar', salesData,
+                         ['@T["Sales"]', '@T["Purchase"]'],
+                         [
+                             salesData.salesData || salesData.sales || [],
+                             salesData.purchaseData || salesData.purchases || []
+                         ],
+                         ['rgba(52, 152, 219, 0.7)', 'rgba(46, 204, 113, 0.7)']
+                     );
+                 }
+
+                 if (ordersData?.error) {
+                     console.error('Orders data error:', ordersData.error);
+                     handleChartError('orderChart', '@T["Order Summary"]', ordersData.error);
+                 } else {
+
+                     createOrUpdateChart('orderChart', 'line', ordersData,
+                         ['@T["Orders"]', '@T["Delivered"]'],
+                         [
+                             ordersData.orderedData || ordersData.orders || [],
+                             ordersData.deliveredData || ordersData.delivered || []
+                         ],
+                         ['rgba(155, 89, 182, 0.6)', 'rgba(241, 196, 15, 0.6)']
+                     );
+                 }
+
+
+
+                 if (summaryData?.error) {
+                     console.error('Summary data error:', summaryData.error);
+                     handleSummaryError(summaryData.error);
+                 } else {
+                     updateDashboardNumbers(summaryData);
+                 }
+
+
+
+             } catch (error) {
+                   console.error('Initialization failed:', error);
+                 showError(`@T["Initialization failed:"] ${error.message || '@T["Failed to load dashboard data"]'}`);
+             }
+
+             initNotifications();
+         });
+
+         async function safeFetch(endpoint) {
+             try {
+                 const url = `${endpoint}?storeId=${storeId}`;
+                 const response = await fetch(url);
+
+                 if (!response.ok) {
+                     const errorText = await response.text();
+                     return { error: `@T["API Error"] (${response.status}): ${errorText}` };
+                 }
+
+                 return await response.json();
+             } catch (error) {
+                 console.error(`Fetch error for ${endpoint}:`, error);
+                 return { error: `@T["Network Error:"] ${error.message}` };
+             }
+         }
+
+         function updateDashboardNumbers(data) {
+             if (!data) {
+                 handleSummaryError('No data returned');
+                 return;
+             }
+
+             try {
+
+                 document.getElementById('salesOverview').innerHTML = `
+                     <span>${data.salesOverview?.totalSales ?? 0} @T["Sales"]</span>
+                     <span>$ ${(data.salesOverview?.totalRevenue ?? 0).toLocaleString()} @T["Revenue"]</span>
+                     <span>$ ${(data.salesOverview?.totalProfit ?? 0).toLocaleString()} @T["Profit"]</span>
+                     <span>$ ${(data.salesOverview?.totalCost ?? 0).toLocaleString()} @T["Cost"]</span>
+                 `;
+
+                 document.getElementById('purchaseOverview').innerHTML = `
+                     <span>${data.purchaseOverview?.totalPurchases ?? 0} @T["Purchases"]</span>
+                     <span>$ ${(data.purchaseOverview?.totalPurchaseCost ?? 0).toLocaleString()} @T["Cost"]</span>
+                      <span>${data.purchaseOverview?.rejectedBySupplierCount ?? 0} @T["Rejected Orders"]</span>
+        
+                     
+                 `;
+
+                 document.getElementById('inventorySummary').innerHTML = `
+                     <span>${data.inventorySummary?.totalInventory ?? 0} @T["In Stock"]</span>
+
+                 `;
+
+                 document.getElementById('productSummary').innerHTML = `
+                     <span>${data.productSummary?.supplierCount ?? 0} @T["Suppliers"]</span>
+                     <span>${data.productSummary?.categoryCount ?? 0} @T["Categories"]</span>
+                 `;
+             } catch (e) {
+                 console.error('Error updating dashboard numbers:', e);
+                 handleSummaryError('Data format error');
+             }
+         }
+
+
+
+
+         function handleChartError(canvasId, title, error) {
+             const chartContainer = document.getElementById(canvasId).closest('.graph-card');
+             chartContainer.innerHTML = `
+                 <h4>${title}</h4>
+                 <div class="chart-error">
+                     <i class="fas fa-exclamation-triangle"></i> @T["Failed to load chart"]
+                     <div class="error-detail">${error}</div>
+                     <button class="btn-retry" onclick="retryLoad('${canvasId}')">
+                         <i class="fas fa-sync-alt"></i> @T["Retry"]
+                     </button>
+                 </div>
+             `;
+         }
+
+         function handleSummaryError(error) {
+             document.querySelectorAll('.card-details').forEach(el => {
+                 el.innerHTML = `
+                     <div class="data-error">
+                         <i class="fas fa-exclamation-circle"></i> @T["Data load failed"]
+                         <div class="error-detail">${error}</div>
+                     </div>
+                 `;
+             });
+         }
+
+
+
+         function showError(message) {
+             const errorContainer = document.getElementById('errorContainer') || createErrorContainer();
+             errorContainer.innerHTML = `
+                 <div class="alert alert-danger">
+                     <i class="fas fa-exclamation-triangle"></i> ${message}
+                     ${storeId ? `<div class="small mt-2">Store ID: ${storeId}</div>` : ''}
+                     <button class="btn btn-sm btn-outline-secondary mt-2" onclick="window.location.reload()">
+                         <i class="fas fa-sync-alt"></i> @T["Refresh"]
+                     </button>
+                 </div>
+             `;
+         }
+
+         function createErrorContainer() {
+             const container = document.createElement('div');
+             container.id = 'errorContainer';
+             container.className = 'mb-4';
+             document.querySelector('main').prepend(container);
+             return container;
+         }
+
+         async function retryLoad(elementId) {
+              try {
+                  let data;
+                  switch(elementId) {
+                      case 'salesChart':
+                          data = await safeFetch('/api/v1/dashboardworker/sales');
+                          if (data.error) throw new Error(data.error);
+                          createOrUpdateChart('salesChart', 'bar', data,
+                              ['@T["Sales"]', '@T["Purchase"]'],
+                              [
+                                  data.salesData || data.sales || [],
+                                  data.purchaseData || data.purchases || []
+                              ],
+                              ['rgba(52, 152, 219, 0.7)', 'rgba(46, 204, 113, 0.7)']
+                          );
+                          break;
+
+                      case 'orderChart':
+                          data = await safeFetch('/api/v1/dashboardworker/orders');
+                          if (data.error) throw new Error(data.error);
+                          createOrUpdateChart('orderChart', 'line', data,
+                              ['@T["Orders"]', '@T["Delivered"]'],
+                              [
+                                  data.orderedData || data.orders || [],
+                                  data.deliveredData || data.delivered || []
+                              ],
+                              ['rgba(155, 89, 182, 0.6)', 'rgba(241, 196, 15, 0.6)']
+                          );
+                          break;
+                  }
+              } catch (error) {
+                  console.error('Retry failed:', error);
+                  showError(`@T["Retry failed:"] ${error.message}`);
+              }
+          }
+
+                       function createOrUpdateChart(canvasId, type, data, datasetLabels, datasets, bgColors) {
+             const ctx = document.getElementById(canvasId);
+             if (!ctx) return;
+
+
+             if (canvasId === 'salesChart' && salesChartInstance) {
+                 salesChartInstance.destroy();
+             }
+             if (canvasId === 'orderChart' && orderChartInstance) {
+                 orderChartInstance.destroy();
+             }
+
+
+             const newChart = new Chart(ctx, {
+                 type: type,
+                 data: {
+                     labels: data.labels || [],
+                     datasets: datasetLabels.map((label, i) => ({
+                         label,
+                         data: datasets[i] || [],
+                         backgroundColor: bgColors[i],
+                         borderColor: bgColors[i].replace('0.2)', '1)').replace('0.5)', '1)'),
+                         borderWidth: type === 'bar' ? 0 : 2,
+                         tension: 0.4,
+                         fill: type === 'line',
+                         pointRadius: type === 'line' ? 3 : 0,
+                         pointBackgroundColor: '#fff',
+                         pointBorderWidth: 2
+                     }))
+                 },
+
+                 options: {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     plugins: {
+                         legend: {
+                             position: 'top',
+                             labels: {
+                                 color: isDark ? '#fff' : '#000',
+                                 usePointStyle: true,
+                                 boxWidth: 6,
+                                 padding: 20
+                             }
+                         },
+                         tooltip: {
+                             mode: 'index',
+                             intersect: false,
+                             backgroundColor: isDark ? '#1a1a1a' : '#fff',
+                             titleColor: isDark ? '#fff' : '#000',
+                             bodyColor: isDark ? '#e0e0e0' : '#333',
+                             borderColor: isDark ? '#444' : '#ddd',
+                             borderWidth: 1,
+                             padding: 12,
+                             callbacks: {
+                                 label: function(context) {
+                                     return `${context.dataset.label}: $${context.parsed.y.toLocaleString()}`;
+                                 }
+                             }
+                         }
+                     },
+                     scales: {
+                         x: {
+                             grid: {
+                                 display: false,
+                                 drawBorder: false
+                             },
+                             ticks: {
+                                 color: isDark ? '#aaa' : '#777'
+                             }
+                         },
+                         y: {
+                             beginAtZero: true,
+                             grid: {
+                                 color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                                 borderDash: [5],
+                                 drawBorder: false
+                             },
+                             ticks: {
+                                 color: isDark ? '#aaa' : '#777',
+                                 padding: 10,
+                                 callback: function(value) {
+                                     return '$' + value.toLocaleString();
+                                 }
+                             }
+                         }
+                     },
+                     interaction: {
+                         intersect: false,
+                         mode: 'index'
+                     },
+                     animation: {
+                         duration: 800,
+                         easing: 'easeOutQuart'
+                     }
+                 }
+             });
+
+
+             if (canvasId === 'salesChart') salesChartInstance = newChart;
+             else if (canvasId === 'orderChart') orderChartInstance = newChart;
+         }
+
+         document.getElementById('darkToggle').addEventListener('click', function () {
+             document.body.classList.toggle('dark-mode');
+             localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+             this.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+
+
+             if (salesChartInstance) salesChartInstance.destroy();
+             if (orderChartInstance) orderChartInstance.destroy();
+             salesChartInstance = null;
+             orderChartInstance = null;
+
+
+             document.querySelectorAll('.card-details').forEach(el => {
+                 el.innerHTML = '<span>@T["Loading data..."]</span>';
+             });
+
+             document.querySelectorAll('.graph-card').forEach(el => {
+                 el.innerHTML = '<h4>@T["Loading chart..."]</h4><div class="chart-placeholder"></div>';
+             });
+
+
+             window.location.reload();
+         });
+
+         function initNotifications() {
+             const bell = document.getElementById('notificationBell');
+             if (bell) {
+                 bell.addEventListener('click', function(e) {
+                     e.stopPropagation();
+                     const modal = document.getElementById('notificationModal');
+                     if (modal) {
+                         modal.style.display = 'flex';
+                         loadNotifications();
+                     }
+                 });
+             }
+
+             const closeModal = document.getElementById('closeNotificationModal');
+             if (closeModal) {
+                 closeModal.addEventListener('click', function() {
+                     const modal = document.getElementById('notificationModal');
+                     if (modal) modal.style.display = 'none';
+                 });
+             }
+
+             window.addEventListener('click', function(e) {
+                 const modal = document.getElementById('notificationModal');
+                 if (modal && e.target === modal) {
+                     modal.style.display = 'none';
+                 }
+             });
+         }
+
+         async function loadNotifications() {
+             const notifList = document.getElementById('notificationList');
+             if (!notifList) return;
+
+             try {
+                 const response = await fetch('/Dashboard/Notifications');
+                 if (!response.ok) throw new Error('@T["Failed to load notifications"]');
+
+                 const html = await response.text();
+                 notifList.innerHTML = html;
+             } catch (error) {
+                 notifList.innerHTML = `
+                     <div class="notification-item">
+                         <div class="notification-message">@T["Failed to load notifications"]</div>
+                         <div class="error-detail">${error.message}</div>
+                     </div>
+                 `;
+             }
+         }
+
+
+
+
+                 function formatNumber(value) {
+             if (value >= 1000000) {
+                 return '$' + (value / 1000000).toFixed(1) + 'M';
+             } else if (value >= 1000) {
+                 return '$' + (value / 1000).toFixed(1) + 'K';
+             }
+             return '$' + value;
+         }
+
+
+         document.getElementById('salesOverview').innerHTML = `
+             <span>${data.salesOverview?.totalSales ?? 0} Sales</span>
+             <span>${formatNumber(data.salesOverview?.totalRevenue ?? 0)} Revenues</span>
+         `;
+
+         window.retryLoad = retryLoad;
+    </script>
+
+    <style>
+        .chart-error, .data-error {
+            color: #dc3545;
+            padding: 15px;
+            text-align: center;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .chart-error i, .data-error i {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+
+        .error-detail {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .btn-retry {
+            margin-top: 15px;
+            padding: 5px 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-retry:hover {
+                background: #e9ecef;
+            }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .small {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+    </style>
+    <canvas id="salesChart" width="400" height="200"></canvas>
+
+    <style>
+
+
+        .graph-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-chart-action {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+            .btn-chart-action.active {
+                background: #4e73df;
+                color: white;
+                border-color: #4e73df;
+            }
+
+        .chart-container {
+            display: flex;
+            height: 350px;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-info {
+            width: 250px;
+            padding: 20px;
+            border-left: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: #f8f9ff;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+            .summary-item span {
+                display: block;
+                font-size: 13px;
+                color: #6c757d;
+                margin-bottom: 5px;
+            }
+
+            .summary-item strong {
+                font-size: 18px;
+                color: #4e73df;
+            }
+
+        .legend-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+            .legend-item:hover {
+                background: #f8f9fa;
+            }
+
+        .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .legend-details {
+            flex: 1;
+        }
+
+        .legend-title {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .legend-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode .graph-card {
+            background: #1e1e1e;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        body.dark-mode .chart-header {
+            border-bottom: 1px solid #333;
+        }
+
+        body.dark-mode .btn-chart-action {
+            background: #2d2d2d;
+            border-color: #444;
+            color: #ccc;
+        }
+
+            body.dark-mode .btn-chart-action.active {
+                background: #4e73df;
+                color: white;
+            }
+
+        body.dark-mode .summary-item {
+            background: #252525;
+        }
+
+        body.dark-mode .legend-item:hover {
+            background: #252525;
+        }
+    </style>
+
+    <script>
+        window.onload = function() {
+            var notificationBell = document.getElementById('notificationBell');
+            var notificationModal = document.getElementById('notificationModal');
+            var closeNotificationModal = document.getElementById('closeNotificationModal');
+            var justClosed = false;
+            if (notificationBell && notificationModal && closeNotificationModal) {
+                notificationBell.onclick = function(e) {
+                    if (justClosed) {
+                        justClosed = false;
+                        return;
+                    }
+                    e.stopPropagation();
+                    notificationModal.style.display = 'flex';
+                    loadNotifications();
+                };
+                closeNotificationModal.onclick = function(e) {
+                    e.stopPropagation();
+                    notificationModal.style.display = 'none';
+                    justClosed = true;
+                    notificationBell.style.pointerEvents = 'none';
+                    setTimeout(function() {
+                        justClosed = false;
+                        notificationBell.style.pointerEvents = '';
+                    }, 400);
+                };
+                notificationModal.onclick = function(e) {
+                    if (e.target === notificationModal) {
+                        notificationModal.style.display = 'none';
+                        justClosed = true;
+                        notificationBell.style.pointerEvents = 'none';
+                        setTimeout(function() {
+                            justClosed = false;
+                            notificationBell.style.pointerEvents = '';
+                        }, 400);
+                    }
+                };
+                document.querySelector('.notification-modal-content').onclick = function(e) {
+                    e.stopPropagation();
+                };
+            }
+        };
+        function getNotificationUrl() {
+            if (window.location.pathname.toLowerCase().startsWith('/supplierdashboard')) {
+                return '/SupplierDashboard/Notifications';
+            }
+            return '/Dashboard/Notifications';
+        }
+        function loadNotifications() {
+            const notifList = document.getElementById('notificationList');
+            fetch(getNotificationUrl())
+                .then(r => r.text())
+                .then(html => {
+                    notifList.innerHTML = html;
+                })
+                .catch(() => {
+                    notifList.innerHTML = '<div class="notification-item"><div class="notification-message">@T["Cant Load Notifications"]</div></div>';
+                });
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifList = document.getElementById('notificationList');
+            if (notifList) {
+                notifList.addEventListener('click', function(e) {
+                    const item = e.target.closest('.notification-item');
+                    if (item && item.dataset.id) {
+                        const notificationId = item.dataset.id;
+                        fetch('/SupplierDashboard/MarkNotificationRead', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'notificationId=' + notificationId
+                        }).then(r => r.json()).then(data => {
+                            if (data.success) {
+                                item.classList.add('read');
+                                setTimeout(() => item.remove(), 200);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+    <style>
+        .bottom-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+            .summary-card h4 {
+                margin-bottom: 12px;
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .summary-card ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .summary-card li {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+                .summary-card li:last-child {
+                    border-bottom: none;
+                }
+
+        .product-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-sales {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .stock-level {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+            .stock-level.warning {
+                background: #fff3cd;
+                color: #856404;
+            }
+
+            .stock-level.critical {
+                background: #f8d7da;
+                color: #721c24;
+            }
+
+        /* Dark mode styles */
+        body.dark-mode .summary-card {
+            background: #1e1e1e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+            body.dark-mode .summary-card li {
+                border-bottom: 1px solid #333;
+            }
+
+        body.dark-mode .stock-level.warning {
+            background: #332e1d;
+            color: #ffd351;
+        }
+
+        body.dark-mode .stock-level.critical {
+            background: #3a1e23;
+            color: #ff6b81;
+        }
+
+
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            color: #333;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                transform: translateX(-100%);
+                z-index: 1000;
+                width: 280px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                width: 100%;
+                padding: 60px 15px 20px 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .cards-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .card {
+                padding: 12px;
+            }
+
+            .graph-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .graph-card {
+                padding: 12px;
+            }
+
+            .bottom-section {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .summary-card {
+                padding: 12px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .main {
+                padding: 60px 10px 20px 10px;
+            }
+
+            .card h4,
+            .graph-card h4,
+            .summary-card h4 {
+                font-size: 14px;
+            }
+
+            .card-details {
+                font-size: 12px;
+            }
+        }
+
+        .sidebar .menu a:hover,
+        .sidebar .bottom-menu a:hover {
+            background: #d9e2ef;
+            color: #007bff;
+        }
+
+        .card, .graph-card, .stock-card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+            .sidebar .logo {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            .sidebar .menu a,
+            .sidebar .bottom-menu a {
+                display: block;
+                padding: 10px;
+                margin: 5px 0;
+                text-decoration: none;
+                color: #333;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+
+                .sidebar .menu a.active,
+                .sidebar .menu a:hover {
+                    background: #eef3ff;
+                    color: #007bff;
+                }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-and-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkToggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .header input {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 300px;
+        }
+
+        .user-profile img {
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+        }
+
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .middle-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+
+            .card h4 {
+                margin-bottom: 5px;
+                font-size: 14px;
+            }
+
+        .card-details span {
+            display: block;
+            margin: 4px 0;
+        }
+
+        .graph-card {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+            .graph-card h4 {
+                font-size: 14px;
+                margin-bottom: 5px;
+            }
+
+
+        .stock-card {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+            .stock-card h4 {
+                margin-bottom: 5px;
+            }
+
+            .stock-card ul {
+                list-style: none;
+                padding: 0;
+            }
+
+            .stock-card li {
+                margin: 4px 0;
+            }
+
+        .low-stock li {
+            background-color: #ffe5e5;
+            color: #cc0000;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+            body.dark-mode .card,
+            body.dark-mode .graph-card,
+            body.dark-mode .stock-card,
+            body.dark-mode .sidebar,
+            body.dark-mode .main,
+            body.dark-mode .header input {
+                background-color: #1e1e1e;
+                color: #e0e0e0;
+                border-color: #333;
+            }
+
+                body.dark-mode .sidebar .menu a,
+                body.dark-mode .sidebar .bottom-menu a {
+                    color: #ccc;
+                }
+
+                    body.dark-mode .sidebar .menu a:hover,
+                    body.dark-mode .sidebar .bottom-menu a:hover {
+                        background: #333;
+                        color: #fff;
+                    }
+
+            body.dark-mode .low-stock li {
+                background-color: #6b0000;
+                color: #ffeaea;
+            }
+
+        .graph-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        body.dark-mode .graph-card {
+            background: #1e1e1e;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+            .alert-danger i {
+                margin-right: 8px;
+            }
+
+        .btn-outline-secondary {
+            margin-top: 10px;
+        }
+
+        .small {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .notification-bell {
+            position: fixed !important;
+            top: 24px !important;
+            right: 32px !important;
+            z-index: 9999 !important;
+        }
+
+        #notificationBell .badge {
+            background: #e53935;
+            color: #fff;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 13px;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            z-index: 2;
+            min-width: 22px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .notification-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999 !important;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.35);
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        .notification-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90vw;
+            padding: 24px 20px 16px 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            position: relative;
+            animation: fadeIn 0.2s;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                transform: translateY(-40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 22px;
+            color: #888;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+
+            .close-modal:hover {
+                color: #dc3545;
+            }
+
+        .notification-modal h3 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 20px;
+            color: #007bff;
+            text-align: center;
+        }
+
+        .notification-list {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .notification-modal .notification-item {
+            background: #f8f9fa;
+            border-radius: 7px;
+            margin-bottom: 10px;
+            padding: 12px 10px 8px 10px;
+            border: 1px solid #e3e3e3;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: background 0.2s;
+        }
+
+            .notification-modal .notification-item:last-child {
+                margin-bottom: 0;
+            }
+
+        .notification-modal .notification-message {
+            font-size: 15px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .notification-modal .notification-time {
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+        }
+
+        .notification-modal .notification-item.read {
+            background: #e9ecef;
+            color: #999;
+        }
+
+        .cards-row {
+            flex: 0 0 auto; 
+        }
+
+        .middle-section {
+            flex: 1;
+            min-height: 300px; 
+        }
+
+        .bottom-section {
+            flex: 0 0 auto; 
+            margin-top: 0; 
+        }
+
+
+        .summary-card {
+            height: 100%; 
+            display: flex;
+            flex-direction: column;
+        }
+
+            .summary-card ul {
+                flex: 1; 
+                overflow-y: auto;
+            }
+    </style>
+
+<script>
+    // User Profile Dropdown functionality
+    function toggleUserProfile() {
+        const menu = document.getElementById('userProfileMenu');
+        menu.classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.querySelector('.user-profile-dropdown');
+        const menu = document.getElementById('userProfileMenu');
+        
+        if (!dropdown.contains(event.target)) {
+            menu.classList.remove('show');
+        }
+    });
+
+    // Load user profile data
+    function loadUserProfile() {
+        // Get user data from multiple sources
+        const userName = localStorage.getItem('userName') || sessionStorage.getItem('userName') || getCookie('userName') || '@T["My Profile"]';
+        const userImage = localStorage.getItem('userImage') || sessionStorage.getItem('userImage') || '/images/default-avatar.png';
+        
+        // If we have a real user name, use it; otherwise keep "My Profile"
+        if (userName && userName !== '@T["My Profile"]') {
+            document.getElementById('userName').textContent = userName;
+            document.getElementById('userFullName').textContent = userName;
+        } else {
+            // Try to get user name from server-side data
+            const serverUserName = '@ViewBag.UserName' || '@Context.Session.GetString("UserName")' || '@TempData["UserName"]';
+            if (serverUserName && serverUserName !== '') {
+                document.getElementById('userName').textContent = serverUserName;
+                document.getElementById('userFullName').textContent = serverUserName;
+            }
+        }
+        
+        // Set profile image
+        const profileImage = document.getElementById('userProfileImage');
+        if (profileImage) {
+            profileImage.src = userImage;
+            profileImage.onerror = function() {
+                this.src = '/images/default-avatar.png';
+            };
+        }
+    }
+
+    // Helper function to get cookie value
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    // Function to update user name (can be called from other scripts)
+    function updateUserName(newName) {
+        if (newName && newName !== '@T["My Profile"]') {
+            localStorage.setItem('userName', newName);
+            sessionStorage.setItem('userName', newName);
+            document.getElementById('userName').textContent = newName;
+            document.getElementById('userFullName').textContent = newName;
+            console.log('User name updated to:', newName);
+        }
+    }
+
+    // Function to update user image
+    function updateUserImage(imageUrl) {
+        if (imageUrl) {
+            localStorage.setItem('userImage', imageUrl);
+            sessionStorage.setItem('userImage', imageUrl);
+            const profileImage = document.getElementById('userProfileImage');
+            if (profileImage) {
+                profileImage.src = imageUrl;
+            }
+            console.log('User image updated to:', imageUrl);
+        }
+    }
+
+    // Function to get current user name
+    function getCurrentUserName() {
+        return localStorage.getItem('userName') || sessionStorage.getItem('userName') || getCookie('userName') || '@T["My Profile"]';
+    }
+
+    // Make functions globally available
+    window.updateUserName = updateUserName;
+    window.updateUserImage = updateUserImage;
+    window.getCurrentUserName = getCurrentUserName;
+
+    // Initialize user profile when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUserProfile();
+    });
+
+    // Load shared user profile system
+    const script = document.createElement('script');
+    script.src = '/js/user-profile.js';
+    script.onload = function() {
+        if (typeof initializeUserProfile === 'function') {
+            initializeUserProfile();
+        }
+    };
+    document.head.appendChild(script);
+
+    // Mobile sidebar toggle function
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const sidebar = document.querySelector('.sidebar');
+        const mobileToggle = document.querySelector('.mobile-menu-toggle');
+        if (window.innerWidth <= 768 && 
+            !sidebar.contains(event.target) && 
+            !mobileToggle.contains(event.target)) {
+            sidebar.classList.remove('open');
+        }
+    });
+</script>
+</body>
+

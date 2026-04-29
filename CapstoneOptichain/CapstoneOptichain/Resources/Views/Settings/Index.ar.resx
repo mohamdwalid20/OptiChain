@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Settings" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="Log out" xml:space="preserve"><value>تسجيل الخروج</value></data>
+  <data name="Language" xml:space="preserve"><value>اللغة</value></data>
+  <data name="Account Settings" xml:space="preserve"><value>إعدادات الحساب</value></data>
+  <data name="Profile Information" xml:space="preserve"><value>معلومات الملف الشخصي</value></data>
+  <data name="Your Name" xml:space="preserve"><value>اسمك</value></data>
+  <data name="your.email@example.com" xml:space="preserve"><value>your.email@example.com</value></data>
+  <data name="Personal Information" xml:space="preserve"><value>البيانات الشخصية</value></data>
+  <data name="Full Name" xml:space="preserve"><value>الاسم الكامل</value></data>
+  <data name="Enter your full name" xml:space="preserve"><value>أدخل اسمك الكامل</value></data>
+  <data name="Email" xml:space="preserve"><value>البريد الإلكتروني</value></data>
+  <data name="Enter your email" xml:space="preserve"><value>أدخل بريدك الإلكتروني</value></data>
+  <data name="Phone Number" xml:space="preserve"><value>رقم الهاتف</value></data>
+  <data name="Enter your phone number" xml:space="preserve"><value>أدخل رقم هاتفك</value></data>
+  <data name="Role" xml:space="preserve"><value>الدور</value></data>
+  <data name="Save Changes" xml:space="preserve"><value>حفظ التغييرات</value></data>
+  <data name="Change Password" xml:space="preserve"><value>تغيير كلمة المرور</value></data>
+  <data name="Current Password" xml:space="preserve"><value>كلمة المرور الحالية</value></data>
+  <data name="Enter current password" xml:space="preserve"><value>أدخل كلمة المرور الحالية</value></data>
+  <data name="New Password" xml:space="preserve"><value>كلمة المرور الجديدة</value></data>
+  <data name="Enter new password" xml:space="preserve"><value>أدخل كلمة المرور الجديدة</value></data>
+  <data name="Confirm New Password" xml:space="preserve"><value>تأكيد كلمة المرور الجديدة</value></data>
+  <data name="Confirm new password" xml:space="preserve"><value>أعد إدخال كلمة المرور الجديدة</value></data>
+</root>
+
+

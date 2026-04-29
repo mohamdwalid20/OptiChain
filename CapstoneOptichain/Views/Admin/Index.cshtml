@@ -1,0 +1,881 @@
+@using Newtonsoft.Json
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+@{
+    ViewBag.Title = "Admin Dashboard";
+    var token = Antiforgery.GetAndStoreTokens(Context);
+    var tokenValue = token.RequestToken;
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <link href="~/notification.css" rel="stylesheet" />
+    <script src="~/js/user-profile.js"></script>
+</head>
+
+<body>
+    @Html.AntiForgeryToken()
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                    <a class="active"><i class="fas fa-chart-line"></i> @T["Dashboard"]</a>
+                    <a href="/Admin/Managers"><i class="fas fa-users"></i> @T["Managers"]</a>
+                    <a href="/Admin/Subscriptions"><i class="fas fa-credit-card"></i> @T["Subscriptions"]</a>
+                    <a href="/Admin/Support"><i class="fas fa-comments"></i> @T["Support"]</a>
+                    <a href="/Admin/Payments"><i class="fas fa-money-bill-wave"></i> @T["Payments"]</a>
+                    <a href="/Admin/RenewalRequests"><i class="fas fa-paper-plane"></i> @T["Renewal Requests"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Logout"]
+                </a>
+            </div>
+        </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="@T["Toggle Dark Mode"]">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                </div>
+            </header>
+
+            <section class="content-section">
+                <div class="page-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> @T["Dashboard"]</h2>
+                    <div class="header-actions">
+                        <a href="/Admin/AddManager" class="btn-action btn-primary">
+                            <i class="fas fa-user-plus"></i> @T["Add Manager"]
+                        </a>
+                        <a href="/Admin/Managers" class="btn-action btn-info">
+                            <i class="fas fa-users"></i> @T["Managers"]
+                        </a>
+                        <a href="/Admin/Subscriptions" class="btn-action btn-warning">
+                            <i class="fas fa-credit-card"></i> @T["Subscriptions"]
+                        </a>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-primary">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <div class="stat-label">@T["Total Managers"]</div>
+                                <div class="stat-value">@Model.TotalManagers</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+
+                    <div class="stat-card stat-success">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <div class="stat-label">@T["Active Subscriptions"]</div>
+                                <div class="stat-value">@Model.ActiveSubscriptions</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+                    <div class="stat-card stat-warning">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <div class="stat-label">@T["Expired Subscriptions"]</div>
+                                <div class="stat-value">@Model.ExpiredSubscriptions</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+
+                    <div class="stat-card stat-info">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <div class="stat-label">@T["Total Revenue"]</div>
+                                <div class="stat-value">$@Model.TotalRevenue.ToString("N2")</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Managers -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-users"></i> @T["Recent Managers"]</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>@T["Name"]</th>
+                                        <th>@T["Email"]</th>
+                                        <th>@T["Created Date"]</th>
+                                        <th>@T["Status"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var manager in Model.RecentManagers)
+                                    {
+                                        <tr>
+                                            <td>@manager.name</td>
+                                            <td>@manager.email</td>
+                                            <td>@manager.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (manager.IsActive)
+                                                {
+                                                    <span class="badge badge-success">@T["Active"]</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-danger">@T["Inactive"]</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expiring Subscriptions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-exclamation-triangle"></i> @T["Subscriptions Expiring Soon"]</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>@T["Manager"]</th>
+                                        <th>@T["Plan Type"]</th>
+                                        <th>@T["Amount"]</th>
+                                        <th>@T["Expires On"]</th>
+                                        <th>@T["Days Left"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var subscription in Model.ExpiringSubscriptions)
+                                    {
+                                        var daysLeft = (subscription.SubscriptionEndDate - DateTime.UtcNow).Days;
+                                        <tr>
+                                            <td>@subscription.Manager?.name</td>
+                                            <td>@subscription.PlanType</td>
+                                            <td>$@subscription.Amount.ToString("N2")</td>
+                                            <td>@subscription.SubscriptionEndDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (daysLeft <= 0)
+                                                {
+                                                    <span class="badge badge-danger">@T["Expired"]</span>
+                                                }
+                                                else if (daysLeft <= 3)
+                                                {
+                                                    <span class="badge badge-warning">@daysLeft @T["days"]</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-info">@daysLeft @T["days"]</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="~/storeContext.js"></script>
+    <script>
+        const isDark = localStorage.getItem('theme') === 'dark';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkToggle').innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        });
+
+        document.getElementById('darkToggle').addEventListener('click', function () {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            this.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function toggleUserProfile() {
+            const menu = document.getElementById('userProfileMenu');
+            menu.classList.toggle('show');
+        }
+
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.user-profile-dropdown');
+            const menu = document.getElementById('userProfileMenu');
+            
+            if (!dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const mobileToggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(event.target) && 
+                !mobileToggle.contains(event.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            color: #333;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                transform: translateX(-100%);
+                z-index: 1000;
+                width: 280px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                width: 100%;
+                padding: 60px 15px 20px 15px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .stat-icon {
+                font-size: 24px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .data-table {
+                min-width: 600px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+                font-size: 12px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .main {
+                padding: 60px 10px 20px 10px;
+            }
+
+            .page-header h2 {
+                font-size: 20px;
+            }
+
+            .btn-action {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-value {
+                font-size: 18px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .menu a,
+        .sidebar .bottom-menu a {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            text-decoration: none;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sidebar .menu a.active,
+        .sidebar .menu a:hover {
+            background: #eef3ff;
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-and-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkToggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .content-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-action:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid;
+        }
+
+        .stat-primary {
+            border-left-color: #007bff;
+        }
+
+        .stat-success {
+            border-left-color: #28a745;
+        }
+
+        .stat-warning {
+            border-left-color: #ffc107;
+        }
+
+        .stat-info {
+            border-left-color: #17a2b8;
+        }
+
+        .stat-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            color: #6c757d;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .card-header h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .sidebar {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+
+        body.dark-mode .sidebar .menu a,
+        body.dark-mode .sidebar .bottom-menu a {
+            color: #ccc;
+        }
+
+        body.dark-mode .sidebar .menu a:hover,
+        body.dark-mode .sidebar .menu a.active {
+            background: #333;
+            color: #fff;
+        }
+
+        body.dark-mode .main {
+            background-color: #121212;
+        }
+
+        body.dark-mode .card,
+        body.dark-mode .stat-card {
+            background-color: #1e1e1e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        body.dark-mode .card-header {
+            background: #252525;
+            border-color: #333;
+        }
+
+        body.dark-mode .card-header h4 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .data-table th {
+            background: #252525;
+            color: #ccc;
+        }
+
+        body.dark-mode .data-table td {
+            border-color: #333;
+        }
+
+        body.dark-mode .data-table tr:hover {
+            background: #252525;
+        }
+
+        body.dark-mode .page-header h2 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .stat-label {
+            color: #aaa;
+        }
+
+        body.dark-mode .stat-value {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .stat-icon {
+            color: #666;
+        }
+
+        body.dark-mode .user-profile-menu {
+            background: #1e1e1e;
+        }
+
+        body.dark-mode .user-profile-header {
+            background: #252525;
+            border-color: #333;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .profile-menu-item {
+            color: #ccc;
+            border-color: #333;
+        }
+
+        body.dark-mode .profile-menu-item:hover {
+            background: #252525;
+            color: #fff;
+        }
+    </style>
+    <script src="~/js/site.js"></script>
+</body>
+</html>

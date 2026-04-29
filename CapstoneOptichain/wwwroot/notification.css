@@ -1,0 +1,99 @@
+﻿@keyframes fadeIn {
+    from {
+        transform: translateY(-40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.notification-modal {
+    background: rgba(0,0,0,0.4);
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s;
+}
+
+.notification-modal-content {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    padding: 24px 32px;
+    min-width: 340px;
+    max-width: 95vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    transition: background 0.3s;
+}
+
+body.dark-mode .notification-modal-content {
+    background: #23272f !important;
+    color: #fff !important;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.7) !important;
+}
+
+.notification-item {
+    background: #f7f7f7;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+body.dark-mode .notification-item {
+    background: #2d323c !important;
+    color: #fff !important;
+    border: 1px solid #3a3f4b !important;
+}
+
+body.dark-mode .notification-message,
+body.dark-mode .notification-time {
+    color: #fff !important;
+}
+
+.notification-item:hover {
+    background: #e0e0e0;
+}
+body.dark-mode .notification-item:hover {
+    background: #353a45 !important;
+}
+
+/* إخفاء الإشعار عند اعتباره مقروء (مثلاً إضافة كلاس .read) */
+.notification-item.read {
+    display: none !important;
+}
+
+.notification-message {
+    font-size: 1.05em;
+    margin-bottom: 4px;
+}
+
+.notification-time {
+    font-size: 0.85em;
+    color: #888;
+}
+body.dark-mode .notification-time {
+    color: #b0b8c1;
+}
+
+.close-modal {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 1.5em;
+    color: #888;
+    cursor: pointer;
+    z-index: 2;
+}
+body.dark-mode .close-modal {
+    color: #ccc;
+}

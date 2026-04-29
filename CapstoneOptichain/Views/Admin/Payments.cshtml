@@ -1,0 +1,408 @@
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+@{
+    ViewBag.Title = "Payments";
+    var payments = ViewBag.Payments as IEnumerable<CapstoneOptichain.Models.Payment>;
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <script src="~/js/user-profile.js"></script>
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                    <a href="/Admin/Index"><i class="fas fa-chart-line"></i> @T["Dashboard"]</a>
+                    <a href="/Admin/Managers"><i class="fas fa-users"></i> @T["Managers"]</a>
+                    <a href="/Admin/Subscriptions"><i class="fas fa-credit-card"></i> @T["Subscriptions"]</a>
+                    <a href="/Admin/Support"><i class="fas fa-comments"></i> @T["Chat"]</a>
+                    <a class="active" href="/Admin/Payments"><i class="fas fa-money-bill-wave"></i> @T["Payments"]</a>
+                    <a href="/Admin/RenewalRequests"><i class="fas fa-paper-plane"></i> @T["Renewal Requests"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Log out"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="@T["Toggle Dark Mode"]">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+
+            </header>
+
+            <section class="content-section">
+                <div class="page-header">
+                    <h2><i class="fas fa-money-bill-wave"></i> @T["Payment Requests"]</h2>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>@T["Manager"]</th>
+                                        <th>@T["Amount"]</th>
+                                        <th>@T["Payment Method"]</th>
+                                        <th>@T["Status"]</th>
+                                        <th>@T["Date"]</th>
+                                        <th>@T["Actions"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @if (payments != null && payments.Any())
+                                {
+                                    foreach (var payment in payments)
+                                    {
+                                        <tr data-payment-id="@payment.ID">
+                                            <td>@(payment.Manager?.name ?? $"Manager {payment.ManagerId}")</td>
+                                            <td>$@payment.Amount.ToString("F2")</td>
+                                            <td>
+                                                <span class="payment-method @payment.PaymentMethod.ToLower()">
+                                                    <i class="fas fa-@(payment.PaymentMethod == "Visa" ? "credit-card" : payment.PaymentMethod == "VodafoneCash" ? "mobile-alt" : "barcode")"></i>
+                                                    @payment.PaymentMethod
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge status-@payment.PaymentStatus.ToLower()">
+                                                    @payment.PaymentStatus
+                                                </span>
+                                            </td>
+                                            <td>@payment.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                            <td>
+                                                @if (payment.PaymentStatus == "Pending")
+                                                {
+                                                    <button class="btn-action btn-success" onclick="approvePayment(@payment.ID)">
+                                                        <i class="fas fa-check"></i> @T["Approve"]
+                                                    </button>
+                                                    <button class="btn-action btn-danger" onclick="rejectPayment(@payment.ID)">
+                                                        <i class="fas fa-times"></i> @T["Reject"]
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">@payment.PaymentStatus</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            <i class="fas fa-inbox fa-2x"></i>
+                                            <p>@T["No payment requests found"]</p>
+                                        </td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const isDark = localStorage.getItem('theme') === 'dark';
+        document.addEventListener('DOMContentLoaded', function () {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkToggle').innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        });
+        
+        document.getElementById('darkToggle').addEventListener('click', function () {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            this.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        });
+        
+        function toggleUserProfile() { 
+            const menu = document.getElementById('userProfileMenu'); 
+            menu.classList.toggle('show'); 
+        }
+
+        async function approvePayment(paymentId) {
+            if (!confirm('@T["Are you sure you want to approve this payment?"]')) return;
+            
+            try {
+                const res = await fetch('/Admin/ApprovePayment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentId: paymentId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('@T["Payment approved successfully!"]');
+                    // Remove the row from the table
+                    const row = document.querySelector(`tr[data-payment-id="${paymentId}"]`);
+                    if (row) {
+                        // Update the status to show "Completed" instead of removing
+                        const statusCell = row.querySelector('td:nth-child(4)');
+                        if (statusCell) {
+                            statusCell.innerHTML = '<span class="status-badge status-completed">Completed</span>';
+                        }
+                        
+                        // Update the actions cell
+                        const actionsCell = row.querySelector('td:nth-child(6)');
+                        if (actionsCell) {
+                            actionsCell.innerHTML = '<span class="text-muted">Completed</span>';
+                        }
+                        
+                        // Remove the row immediately
+                        row.remove();
+                        
+                        // Check if table is empty and reload if needed
+                        const tbody = document.querySelector('.data-table tbody');
+                        const rows = tbody.querySelectorAll('tr[data-payment-id]');
+                        if (rows.length === 0) {
+                            location.reload(); // Reload to show "No payments" message
+                        }
+                    }
+                } else {
+                    alert(data.message || '@T["Failed to approve payment"]');
+                }
+            } catch (e) {
+                alert('@T["Network error. Please try again."]');
+            }
+        }
+
+        async function rejectPayment(paymentId) {
+            if (!confirm('@T["Are you sure you want to reject this payment?"]')) return;
+            
+            try {
+                const res = await fetch('/Admin/RejectPayment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentId: paymentId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('@T["Payment rejected successfully!"]');
+                    // Remove the row from the table
+                    const row = document.querySelector(`tr[data-payment-id="${paymentId}"]`);
+                    if (row) {
+                        // Update the status to show "Failed" instead of removing
+                        const statusCell = row.querySelector('td:nth-child(4)');
+                        if (statusCell) {
+                            statusCell.innerHTML = '<span class="status-badge status-failed">Failed</span>';
+                        }
+                        
+                        // Update the actions cell
+                        const actionsCell = row.querySelector('td:nth-child(6)');
+                        if (actionsCell) {
+                            actionsCell.innerHTML = '<span class="text-muted">Failed</span>';
+                        }
+                        
+                        // Remove the row immediately
+                        row.remove();
+                        
+                        // Check if table is empty and reload if needed
+                        const tbody = document.querySelector('.data-table tbody');
+                        const rows = tbody.querySelectorAll('tr[data-payment-id]');
+                        if (rows.length === 0) {
+                            location.reload(); // Reload to show "No payments" message
+                        }
+                    }
+                } else {
+                    alert(data.message || '@T["Failed to reject payment"]');
+                }
+            } catch (e) {
+                alert('@T["Network error. Please try again."]');
+            }
+        }
+    </script>
+
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; overflow:hidden; }
+        .dashboard { display:flex; height:100vh; width:100vw; overflow:hidden; }
+        .sidebar { width:220px; background:white; height:100vh; padding:20px; border-right:1px solid #ddd; display:flex; flex-direction:column; justify-content:space-between; position:sticky; top:0; overflow-y:auto; }
+        .sidebar .logo { font-size:24px; font-weight:bold; margin-bottom:30px; }
+        .sidebar .menu a, .sidebar .bottom-menu a { display:block; padding:10px; margin:5px 0; text-decoration:none; color:#333; border-radius:6px; cursor:pointer; font-size:14px; }
+        .sidebar .menu a.active, .sidebar .menu a:hover { background:#eef3ff; color:#007bff; }
+        .sidebar .menu a i, .sidebar .bottom-menu a i { margin-right:10px; font-size:16px; }
+
+        .main { flex:1; padding:20px; display:flex; flex-direction:column; gap:20px; overflow-y:auto; height:100%; }
+        .header { display:flex; justify-content:space-between; align-items:center; }
+        #darkToggle { background:none; border:none; cursor:pointer; font-size:18px; margin-left:10px; }
+        .content-section { flex:1; display:flex; flex-direction:column; gap:20px; }
+        .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+        .btn-action { padding:6px 12px; border:none; border-radius:6px; color:#fff; text-decoration:none; cursor:pointer; margin:2px; }
+        .btn-success { background:#28a745; }
+        .btn-danger { background:#dc3545; }
+        .card { background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:hidden; }
+        .card-body { padding:20px; }
+        .data-table { width:100%; border-collapse:collapse; font-size:14px; }
+        .data-table th, .data-table td { padding:12px; text-align:left; border-bottom:1px solid #e9ecef; }
+        .data-table th { background:#f8f9fa; font-weight:600; color:#495057; }
+
+        .payment-method {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .payment-method.visa { background: #1a1f71; color: white; }
+        .payment-method.vodafonecash { background: #e60000; color: white; }
+        .payment-method.fawry { background: #ff6b35; color: white; }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+
+        .text-center { text-align: center; }
+        .text-muted { color: #6c757d; }
+
+        /* User Profile Dropdown Styling */
+        .user-profile-dropdown {
+            position: relative;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+        }
+
+        .profile-menu-item {
+            display: block;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.2s;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        body.dark-mode { background:#121212; color:#e0e0e0; }
+        body.dark-mode .sidebar { background:#1e1e1e; border-color:#333; }
+        body.dark-mode .sidebar .menu a, body.dark-mode .sidebar .bottom-menu a { color:#ccc; }
+        body.dark-mode .sidebar .menu a.active, body.dark-mode .sidebar .menu a:hover { background:#333; color:#fff; }
+        body.dark-mode .card { background:#1e1e1e; }
+        body.dark-mode .data-table th { background:#252525; color:#ccc; }
+        body.dark-mode .data-table td { border-color:#333; }
+        
+        /* Dark mode for user profile */
+        body.dark-mode .user-profile-menu {
+            background: #1e1e1e;
+            border-color: #333;
+        }
+        
+        body.dark-mode .user-profile-header {
+            border-color: #333;
+            color: #ccc;
+        }
+        
+        body.dark-mode .profile-menu-item {
+            color: #ccc;
+        }
+        
+        body.dark-mode .profile-menu-item:hover {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</body>

@@ -1,0 +1,14 @@
+@model IEnumerable<CapstoneOptichain.Models.Notification>
+<ul class="notification-dropdown">
+    @foreach (var notif in Model)
+    {
+        <li class="@(notif.IsRead ? "" : "fw-bold")">
+            <div>@notif.Message</div>
+            <small style="color: #888;">@notif.CreatedAt.ToLocalTime().ToString("g")</small>
+        </li>
+    }
+    @if (!Model.Any())
+    {
+        <li><span>@T["No notifications."]</span></li>
+    }
+</ul> 

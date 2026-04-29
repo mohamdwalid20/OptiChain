@@ -1,0 +1,17 @@
+@model IEnumerable<CapstoneOptichain.Models.Notification>
+@if (Model != null && Model.Any(n => !n.IsRead))
+{
+    foreach (var notification in Model.Where(n => !n.IsRead))
+    {
+        <div class="notification-item" data-id="@notification.Id">
+            <div class="notification-message">@notification.Message</div>
+            <div class="notification-time">@notification.CreatedAt.ToString("MMM dd, HH:mm")</div>
+        </div>
+    }
+}
+else
+{
+    <div class="notification-item">
+        <div class="notification-message">@T["No new notifications"]</div>
+    </div>
+} 

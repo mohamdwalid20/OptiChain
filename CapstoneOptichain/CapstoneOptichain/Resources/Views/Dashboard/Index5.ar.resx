@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Set Your Password" xml:space="preserve"><value>قم بتعيين كلمة المرور</value></data>
+  <data name="Please set a password for your account" xml:space="preserve"><value>من فضلك قم بتعيين كلمة مرور لحسابك</value></data>
+  <data name="New Password" xml:space="preserve"><value>كلمة المرور الجديدة</value></data>
+  <data name="Enter your password" xml:space="preserve"><value>أدخل كلمة المرور</value></data>
+  <data name="Confirm Password" xml:space="preserve"><value>تأكيد كلمة المرور</value></data>
+  <data name="Confirm your password" xml:space="preserve"><value>أعد إدخال كلمة المرور</value></data>
+  <data name="Set Password" xml:space="preserve"><value>تعيين كلمة المرور</value></data>
+  <data name="Back to Login" xml:space="preserve"><value>العودة لتسجيل الدخول</value></data>
+</root>
+
+

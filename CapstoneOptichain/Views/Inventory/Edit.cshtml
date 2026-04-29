@@ -1,0 +1,463 @@
+﻿@model CapstoneOptichain.Models.ProductEditDto
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+@{
+    ViewData["Title"] = @T["Edit Product"];
+    var token = Antiforgery.GetAndStoreTokens(Context);
+    var tokenValue = token.RequestToken;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@T["Edit Product"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --text-color: #333;
+            --bg-color: #f6f8fc;
+            --card-bg: #fff;
+            --border-color: #ddd;
+            --input-bg: #fff;
+            --text-muted: #6c757d;
+            --sidebar-width: 220px;
+        }
+
+        .dark-mode {
+            --primary-color: #3b82f6;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --text-color: #e0e0e0;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --border-color: #444;
+            --input-bg: #2d2d2d;
+            --text-muted: #9ca3af;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .edit-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .edit-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .edit-header {
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .edit-header:after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: var(--primary-color);
+            margin: 10px auto 0;
+            border-radius: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .text-danger {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: block;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        /* Image Upload Styles */
+        .image-upload-container {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .image-preview {
+            display: inline-block;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .current-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-image {
+            width: 120px;
+            height: 120px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .btn-image-action {
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+        }
+
+        .btn-change-image {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-change-image:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-remove-image {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-remove-image:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-add-image {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-add-image:hover {
+            background-color: #27ae60;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-success {
+            background-color: rgba(46, 204, 113, 0.15);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .alert-danger {
+            background-color: rgba(231, 76, 60, 0.15);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .alert i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Hide file input */
+        .hidden-file-input {
+            display: none;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 500px) {
+            .edit-container {
+                padding: 20px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+   
+    <div class="edit-wrapper">
+        <div class="edit-container">
+            <h2 class="edit-header">@T["Edit Product"]</h2>
+
+         
+
+
+            <form asp-controller="Inventory" asp-action="Edit" asp-route-id="@Model.ProductId" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ProductId" />
+
+                <div class="image-upload-container">
+                    <div class="image-preview">
+                        @if (ViewBag.CurrentImage != null)
+                        {
+                                <img src="@ViewBag.CurrentImage" class="current-image" id="currentImagePreview">
+                        }
+                        else
+                        {
+                                <div class="no-image">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                        }
+                    </div>
+                    <div class="image-actions">
+                        @if (ViewBag.CurrentImage != null)
+                        {
+                                <label class="btn-image-action btn-change-image">
+                                    <i class="fas fa-exchange-alt"></i> @T["Change"]
+                                    <input type="file" name="ProductImage" accept="image/*" class="hidden-file-input" id="imageUpload">
+                                </label>
+                                <label class="btn-image-action btn-remove-image">
+                                    <i class="fas fa-trash-alt"></i> @T["Remove"]
+                                    <input type="checkbox" name="RemoveImage" class="hidden-file-input" id="removeImageCheckbox">
+                                </label>
+                        }
+                        else
+                        {
+                                <label class="btn-image-action btn-add-image">
+                                    <i class="fas fa-plus"></i> @T["Add Image"]
+                                    <input type="file" name="ProductImage" accept="image/*" class="hidden-file-input" id="imageUpload">
+                                </label>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="ProductName">@T["Product Name"]</label>
+                    <input name="ProductName" asp-for="ProductName" class="form-control" placeholder="@T["Enter product name"]" />
+                    <span asp-validation-for="ProductName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="BuyingPrice">@T["Buying Price"]</label>
+                    <input name="BuyingPrice" asp-for="BuyingPrice" type="number" step="0.01" class="form-control" placeholder="@T["0.00"]" />
+                    <span asp-validation-for="BuyingPrice" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Quantity">@T["Quantity"]</label>
+                    <input name="Quantity" asp-for="Quantity" type="number" class="form-control" placeholder="@T["0"]" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
+               
+                <div class="form-group">
+                    <label class="form-label" asp-for="ExpiryDate">@T["Expiry Date"]</label>
+                    <input name="ExpiryDate" asp-for="ExpiryDate" type="date" class="form-control" />
+                    <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-actions">
+                    <a href="~/Inventory/Index" class="btn btn-outline">
+                        <i class="fas fa-arrow-left"></i> @T["Back"]
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> @T["Save Changes"]
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+
+        function applyDarkMode() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            document.body.classList.toggle('dark-mode', isDark);
+        }
+
+        // Initialize dark mode on page load
+        $(document).ready(function() {
+            applyDarkMode();
+
+            // Image upload preview
+            $('#imageUpload').change(function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        if ($('#currentImagePreview').length) {
+                            $('#currentImagePreview').attr('src', e.target.result);
+                        } else {
+                            $('.no-image').hide();
+                            $('.image-preview').prepend(
+                                `<img src="${e.target.result}" class="current-image" id="currentImagePreview">`
+                            );
+                            $('.btn-add-image').remove();
+                            $('.image-actions').html(`
+                                <label class="btn-image-action btn-change-image">
+                                    <i class="fas fa-exchange-alt"></i> @T["Change"]
+                                    <input type="file" name="ProductImage" accept="image/*" class="hidden-file-input" id="imageUpload">
+                                </label>
+                                <label class="btn-image-action btn-remove-image">
+                                    <i class="fas fa-trash-alt"></i> @T["Remove"]
+                                    <input type="checkbox" name="RemoveImage" class="hidden-file-input" id="removeImageCheckbox">
+                                </label>
+                            `);
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Remove image checkbox
+            $('body').on('change', '#removeImageCheckbox', function() {
+                if ($(this).is(':checked')) {
+                    $('#currentImagePreview').hide();
+                    $('.no-image').show();
+                    $('.image-actions').html(`
+                        <label class="btn-image-action btn-add-image">
+                            <i class="fas fa-plus"></i> @T["Add Image"]
+                            <input type="file" name="ProductImage" accept="image/*" class="hidden-file-input" id="imageUpload">
+                        </label>
+                    `);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

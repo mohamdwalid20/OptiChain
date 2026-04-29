@@ -1,0 +1,236 @@
+﻿@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+
+@{
+    Layout = null;
+}
+<head>
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+</head>
+<div class="container">
+    <div class="logo">
+        <img src="@Url.Content("~/css/logo with word.png")" alt="OptiChain Logo" />
+    </div>
+    <div class="login-section">
+        <img src="@Url.Content("~/css/logo.png")" alt="Login Icon" class="login-icon" />
+        <h2>@T["Forgot Your Password?"]</h2>
+        <p>@T["Enter your email and we’ll send you a verification code."]</p>
+
+        <form id="forgotForm">
+            <div id="emailSection">
+                <label for="email">@T["Email"]</label>
+                <input name="email" type="email" id="email" placeholder="@T["Enter your email"]" required />
+                <button type="button" class="btn-primary" onclick="sendCode()">@T["Send Code"]</button>
+            </div>
+
+            <div id="codeSection" style="display: none;">
+                <label for="code">@T["Verification Code"]</label>
+                <input name="code" type="text" id="code" placeholder="@T["Enter the code"]" required />
+                <button type="button" class="btn-primary" onclick="verifyCode()">@T["Verify Code"]</button>
+            </div>
+
+            <div id="newPassSection" style="display: none;">
+                <label for="newPassword">@T["New Password"]</label>
+                <input name="newPassword" type="password" id="newPassword" placeholder="@T["New Password"]" required />
+                <button type="submit" class="btn-primary">@T["Reset Password"]</button>
+            </div>
+        </form>
+
+        <p class="signup-text">
+            @T["Remembered your password?"] <a href="@Url.Action("Index", "Dashboard")">@T["Sign in"]</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f4f6f9;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+        padding: 30px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .logo img {
+        width: 120px;
+        margin-bottom: 15px;
+    }
+
+    .login-icon {
+        width: 60px;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        font-size: 20px;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    p {
+        color: #666;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    form {
+        text-align: left;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 500;
+        color: #444;
+        font-size: 14px;
+    }
+
+    input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        padding: 8px 15px;
+        font-size: 14px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.3s;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .signup-text {
+        margin-top: 15px;
+        font-size: 12px;
+        color: #777;
+    }
+
+        .signup-text a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+            .signup-text a:hover {
+                text-decoration: underline;
+            }
+</style>
+
+<script>
+           async function sendCode() {
+        const email = document.getElementById("email").value;
+
+        try {
+            const formData = new FormData();
+            formData.append("email", email);
+
+            const response = await fetch("/Dashboard/SendVerificationCode", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert("Code sent successfully!");
+                document.getElementById("emailSection").style.display = "none";
+                document.getElementById("codeSection").style.display = "block";
+            } else {
+                throw new Error(data.message || "Failed to send code");
+            }
+        } catch (error) {
+            console.error("Error Details:", error);
+            alert(`An error occurred.: ${error.message}`);
+        }
+    }
+
+
+
+
+
+
+       function verifyCode() {
+        const code = document.getElementById("code").value.trim();
+
+        fetch("/Dashboard/VerifyCode", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "code=" + encodeURIComponent(code)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Verified successfully");
+                document.getElementById("codeSection").style.display = "none";
+                document.getElementById("newPassSection").style.display = "block";
+            } else {
+                alert(data.message || "The code is incorrect, please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("An error occurred during verification.");
+        });
+    }
+
+
+
+
+
+    document.getElementById("forgotForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const newPassword = document.getElementById("newPassword").value;
+
+        fetch("/Dashboard/ResetPassword", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "newPassword=" + encodeURIComponent(newPassword)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Password changed successfully.");
+                window.location.href = "/Dashboard/Index";
+            } else {
+                alert(data.message || "Something went wrong.");
+            }
+        });
+    });
+</script>

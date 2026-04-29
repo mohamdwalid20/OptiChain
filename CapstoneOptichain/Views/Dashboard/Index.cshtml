@@ -1,0 +1,412 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+
+<!DOCTYPE html>
+<html lang="@System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <link href="~/Index.css" rel="stylesheet" />
+</head>
+<body>
+
+    @using CapstoneOptichain.Models
+
+
+<div class="container">
+    <div class="logo">
+        <img src="@Url.Content("~/css/logo with word.png")" alt="@T["OptiChain Logo"]">
+    </div>
+    <div class="login-section">
+        <img src="@Url.Content("~/css/logo.png")" alt="@T["Login Icon"]" class="login-icon">
+        <h2>@T["Log in to your account"]</h2>
+        <p>@T["Welcome back! Please enter your details."]</p>
+        
+        <form action="/Dashboard/Login" method="post" id="loginForm">
+            @Html.AntiForgeryToken()
+            
+            @if (!string.IsNullOrEmpty(ViewBag.Error))
+            {
+                <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #f5c6cb;">
+                    <i class="fas fa-exclamation-triangle"></i> @ViewBag.Error
+                </div>
+            }
+            
+            <div class="form-group">
+                <label for="Email">@T["Email"]</label>
+                <input name="Email" type="email" id="Email" placeholder="@T["Enter your email"]" required>
+                <span class="validation-error" id="emailError" style="display: none; color: #dc3545; font-size: 12px; margin-top: 5px;"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Password">@T["Password"]</label>
+                <input name="Password" type="password" id="Password" placeholder="@T["Password Placeholder"]" required>
+                <span class="validation-error" id="passwordError" style="display: none; color: #dc3545; font-size: 12px; margin-top: 5px;"></span>
+            </div>
+
+            <button type="submit" class="btn-primary">@T["Sign in"]</button>
+
+            <div class="options">
+                <a href="~/Dashboard/Index4">@T["Forgot password"]</a>
+            </div>
+        </form>
+        
+        <p class="signup-text">@T["Don't have an account?"] <a href="~/Dashboard/Index2">@T["Sign up"]</a></p>
+        
+      
+    </div>
+</div>
+    
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f8f9fa;
+        padding: 20px;
+    }
+
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 1000px;
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 50%;
+    }
+
+    .logo img {
+        max-width: 500px;
+        height: auto;
+    }
+
+    .logo:hover img {
+        filter: hue-rotate(30deg);
+        filter: grayscale(50%);
+        transform: rotate(1deg); 
+    }
+
+    .login-section {
+        flex: 1;
+        text-align: center;
+        width: 50%;
+    }
+
+    /* Responsive Design for Mobile */
+    @@media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+
+        .container {
+            flex-direction: column;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .logo {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+        max-width: 200px;
+        height: auto;
+    }
+
+        .login-section {
+            width: 100%;
+        }
+
+        h2 {
+            font-size: 20px;
+        }
+
+        p {
+            font-size: 13px;
+        }
+
+        form {
+            max-width: 100%;
+        }
+
+        input {
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .container {
+            padding: 15px;
+        }
+
+        .logo img {
+            max-width: 150px;
+        }
+
+        h2 {
+            font-size: 18px;
+        }
+
+        .btn-primary {
+            font-size: 14px;
+        }
+    }
+
+    .login-icon {
+        display: block;
+        margin: 0 auto 10px;
+        width: 90px;
+        animation: rotateIcon 2s ease-in-out infinite alternate;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    p {
+        text-align: center;
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    .validation-error {
+        display: block;
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .alert {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+
+    label {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 15px;
+    }
+
+    .options {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .options a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 10px;
+        width: 100%;
+        animation: pulse 1.5s infinite alternate;
+    }
+
+    .btn-google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        color: #333;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .btn-google img {
+        width: 20px;
+        margin-right: 10px;
+    }
+
+    .signup-text {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .signup-text a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    /* Animations */
+    @@keyframes rotateIcon {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.05); }
+    }
+</style>
+
+<script>
+    // Google OAuth functionality
+    const googleButton = document.querySelector('.btn-google');
+    const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?';
+
+    const clientId = '@Configuration["Authentication:Google:ClientId"]';
+    const scope = 'email profile';
+    const redirectUri = '@Configuration["Authentication:Google:RedirectUri"]';
+    const responseType = 'code';
+
+    if (googleButton) {
+        googleButton.addEventListener('click', () => {
+            const authUrl = `${googleAuthUrl}client_id=${clientId}&scope=${scope}&redirect_uri=${redirectUri}&response_type=${responseType}`;
+            window.location.href = authUrl;
+        });
+    }
+
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        if (code) {
+            window.location.href = `/Auth/GoogleCallback?code=${code}`;
+        }
+    });
+
+    // Client-side validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('Email');
+        const passwordInput = document.getElementById('Password');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+
+        // Clear errors on input
+        emailInput.addEventListener('input', function() {
+            emailError.style.display = 'none';
+            emailInput.style.borderColor = '#ccc';
+        });
+
+        passwordInput.addEventListener('input', function() {
+            passwordError.style.display = 'none';
+            passwordInput.style.borderColor = '#ccc';
+        });
+
+        // Form validation
+        loginForm.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Clear previous errors
+            emailError.style.display = 'none';
+            passwordError.style.display = 'none';
+            emailInput.style.borderColor = '#ccc';
+            passwordInput.style.borderColor = '#ccc';
+
+            // Email validation
+            const email = emailInput.value.trim();
+            if (!email) {
+                emailError.textContent = '@T["Email is required"]';
+                emailError.style.display = 'block';
+                emailInput.style.borderColor = '#dc3545';
+                isValid = false;
+            } else if (!isValidEmail(email)) {
+                emailError.textContent = '@T["Please enter a valid email address"]';
+                emailError.style.display = 'block';
+                emailInput.style.borderColor = '#dc3545';
+                isValid = false;
+            }
+
+            // Password validation
+            const password = passwordInput.value.trim();
+            if (!password) {
+                passwordError.textContent = '@T["Password is required"]';
+                passwordError.style.display = 'block';
+                passwordInput.style.borderColor = '#dc3545';
+                isValid = false;
+            } else if (password.length < 6) {
+                passwordError.textContent = '@T["Password must be at least 6 characters"]';
+                passwordError.style.display = 'block';
+                passwordInput.style.borderColor = '#dc3545';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        // Email format validation
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            return emailRegex.test(email);
+        }
+    });
+</script>
+<script src="~/js/site.js"></script>
+</body>
+
+</html>

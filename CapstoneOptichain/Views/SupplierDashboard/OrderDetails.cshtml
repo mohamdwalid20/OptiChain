@@ -1,0 +1,751 @@
+@model CapstoneOptichain.Models.Order
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                    <a href="/SupplierDashboard/Index"><i class="fas fa-chart-line"></i> @T["Dashboard"]</a>
+                    <a href="/SupplierDashboard/Stores"><i class="fas fa-store"></i> @T["Stores"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Log out"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div id="currentStoreInfo" style="font-weight: bold; color: #007bff; margin-left: 15px;">
+                        @if (TempData["SelectedStore"] != null)
+                        {
+                            <span>@T["Current Store"]: @TempData["SelectedStore"]</span>
+                        }
+                        else
+                        {
+                            <span>@T["No Store Selected"]!</span>
+                        }
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="page-header">
+                    <h2><i class="fas fa-file-alt"></i> @T["Order Details"] - #@Model.OrderId</h2>
+                    <a href="@Url.Action("Index", "SupplierDashboard")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> @T["Back to Orders"]
+                    </a>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="order-info mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">@T["Order Information"]</h6>
+                                    <table class="table table-borderless table-sm">
+                                        <tr>
+                                            <td class="text-muted">@T["Order ID"]:</td>
+                                            <td class="font-weight-bold">#@Model.OrderId</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">@T["Order Date"]:</td>
+                                            <td>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">@T["Order Type"]:</td>
+                                            <td>
+                                                <span class="badge @(Model.OrderType == "Purchase" ? "badge-success" : "badge-primary")">
+                                                    @Model.OrderType
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">@T["Status"]:</td>
+                                            <td>
+                                                <span class="badge @(Model.Status == "Pending" ? "badge-warning" : 
+                                                               Model.Status == "AcceptedBySupplier" ? "badge-success" : 
+                                                               Model.Status == "RejectedBySupplier" ? "badge-danger" : "badge-info")">
+                                                    @Model.Status
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">@T["Store"]:</td>
+                                            <td>@Model.Store?.StoreName</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">@T["Manager Information"]</h6>
+                                    @if (ViewBag.Manager != null)
+                                    {
+                                        var manager = ViewBag.Manager as CapstoneOptichain.Models.Manager;
+                                        <table class="table table-borderless table-sm">
+                                            <tr>
+                                                <td class="text-muted">@T["Name"]:</td>
+                                                <td>@manager.name</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted">@T["Email"]:</td>
+                                                <td>@manager.email</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted">@T["Phone"]:</td>
+                                                <td>@manager.phone</td>
+                                            </tr>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">@T["Manager information not available"]</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-muted mb-3">@T["Order Items"] (@Model.OrderItems.Count @T["items"])</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>@T["Product"]</th>
+                                        <th>@T["Category"]</th>
+                                        <th class="text-center">@T["Quantity"]</th>
+                                        <th class="text-right">@T["Unit Price"]</th>
+                                        <th class="text-right">@T["Total Value"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.OrderItems)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    @if (!string.IsNullOrEmpty(item.Product.ImagePath))
+                                                    {
+                                                        <img src="@item.Product.ImagePath" alt="@item.Product.ProductName" 
+                                                             class="product-image mr-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="product-placeholder mr-2" style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 12px;">IMG</div>
+                                                    }
+                                                    <div>
+                                                        <div class="font-weight-bold">@item.Product.ProductName</div>
+                                                        <small class="text-muted">@item.Product.Category?.CategoryName</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>@item.Product.Category?.CategoryName</td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-right">@item.OrderValue.ToString("C")</td>
+                                            <td class="text-right font-weight-bold">@((item.OrderValue * item.Quantity).ToString("C"))</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active">
+                                        <td colspan="4" class="text-right font-weight-bold">@T["Total Order Value"]:</td>
+                                        <td class="text-right font-weight-bold text-primary">@Model.OrderItems.Sum(oi => oi.OrderValue * oi.Quantity).ToString("C")</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden; 
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .menu a,
+        .sidebar .bottom-menu a {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            text-decoration: none;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sidebar .menu a.active,
+        .sidebar .menu a:hover {
+            background: #eef3ff;
+            color: #007bff;
+        }
+
+        .sidebar .menu a:hover,
+        .sidebar .bottom-menu a:hover {
+            background: #d9e2ef;
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto; 
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-and-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkToggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px 0;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .card {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+
+        .table {
+            color: #333;
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            border-bottom: 2px solid #dee2e6;
+            color: #333;
+            font-weight: 600;
+            padding: 12px 8px;
+        }
+
+        .table td {
+            border-top: 1px solid #dee2e6;
+            vertical-align: middle;
+            padding: 12px 8px;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.05);
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .badge-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .badge-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            text-decoration: none;
+        }
+
+        .btn-success {
+            color: #fff;
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-danger {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .text-muted {
+            color: #6c757d !important;
+        }
+
+        .font-weight-bold {
+            font-weight: bold !important;
+        }
+
+        .d-flex {
+            display: flex !important;
+        }
+
+        .align-items-center {
+            align-items: center !important;
+        }
+
+        .mr-2 {
+            margin-right: 0.5rem !important;
+        }
+
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-sm td, .table-sm th {
+            padding: 0.3rem;
+        }
+
+        .table-borderless td, .table-borderless th {
+            border: 0;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .text-right {
+            text-align: right !important;
+        }
+
+        .text-primary {
+            color: #007bff !important;
+        }
+
+        .table-active {
+            background-color: rgba(0,0,0,.075) !important;
+        }
+
+        .product-image {
+            border: 1px solid #dee2e6;
+        }
+
+        .product-placeholder {
+            border: 1px solid #dee2e6;
+        }
+
+        .order-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .mt-4 {
+            margin-top: 1.5rem !important;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .card,
+        body.dark-mode .sidebar,
+        body.dark-mode .main {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border-color: #333;
+        }
+
+        body.dark-mode .sidebar .menu a,
+        body.dark-mode .sidebar .bottom-menu a {
+            color: #ccc;
+        }
+
+        body.dark-mode .sidebar .menu a:hover,
+        body.dark-mode .sidebar .bottom-menu a:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        body.dark-mode .page-header h2 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .table {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .table th {
+            color: #e0e0e0;
+            border-bottom-color: #333;
+        }
+
+        body.dark-mode .table td {
+            border-top-color: #333;
+        }
+
+        body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(255,255,255,.05);
+        }
+
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .table-active {
+            background-color: rgba(255,255,255,.075) !important;
+        }
+
+        body.dark-mode .product-image {
+            border-color: #444;
+        }
+
+        body.dark-mode .product-placeholder {
+            border-color: #444;
+            background-color: #2d2d2d !important;
+            color: #aaa !important;
+        }
+
+        body.dark-mode .order-info {
+            background-color: #2d2d2d;
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        /* Dark mode for user profile */
+        body.dark-mode .user-profile-menu {
+            background-color: #1e1e1e !important;
+            border: 1px solid #333 !important;
+        }
+
+        body.dark-mode .user-profile-header {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+            border-bottom-color: #444 !important;
+        }
+
+        body.dark-mode .profile-menu-item {
+            color: #e0e0e0 !important;
+            border-bottom-color: #444 !important;
+        }
+
+        body.dark-mode .profile-menu-item:hover {
+            background-color: #333 !important;
+            color: #fff !important;
+        }
+    </style>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script src="~/storeContext.js"></script>
+
+    <script>
+        // Dark mode toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkToggle = document.getElementById('darkToggle');
+            const isDark = localStorage.getItem('theme') === 'dark';
+            
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+
+            darkToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                
+                if (isDarkMode) {
+                    localStorage.setItem('theme', 'dark');
+                    darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    localStorage.setItem('theme', 'light');
+                    darkToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            });
+        });
+
+        // User Profile Dropdown functionality
+        function toggleUserProfile() {
+            const menu = document.getElementById('userProfileMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.user-profile-dropdown');
+            const menu = document.getElementById('userProfileMenu');
+            
+            if (!dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+            // Load shared user profile system
+            const script = document.createElement('script');
+            script.src = '/js/user-profile.js';
+            script.onload = function() {
+                if (typeof initializeUserProfile === 'function') {
+                    initializeUserProfile();
+                }
+            };
+            document.head.appendChild(script);
+    </script>
+</body>

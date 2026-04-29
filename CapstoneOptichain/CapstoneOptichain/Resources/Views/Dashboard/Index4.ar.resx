@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Forgot Your Password?" xml:space="preserve"><value>هل نسيت كلمة المرور؟</value></data>
+  <data name="Enter your email and we’ll send you a verification code." xml:space="preserve"><value>أدخل بريدك الإلكتروني وسنرسل لك رمز تحقق.</value></data>
+  <data name="Email" xml:space="preserve"><value>البريد الإلكتروني</value></data>
+  <data name="Enter your email" xml:space="preserve"><value>أدخل بريدك الإلكتروني</value></data>
+  <data name="Send Code" xml:space="preserve"><value>إرسال الرمز</value></data>
+  <data name="Verification Code" xml:space="preserve"><value>رمز التحقق</value></data>
+  <data name="Enter the code" xml:space="preserve"><value>أدخل الرمز</value></data>
+  <data name="Verify Code" xml:space="preserve"><value>تحقق من الرمز</value></data>
+  <data name="New Password" xml:space="preserve"><value>كلمة المرور الجديدة</value></data>
+  <data name="Reset Password" xml:space="preserve"><value>إعادة تعيين كلمة المرور</value></data>
+  <data name="Remembered your password?" xml:space="preserve"><value>تذكرت كلمة المرور؟</value></data>
+  <data name="Sign in" xml:space="preserve"><value>تسجيل الدخول</value></data>
+</root>
+
+

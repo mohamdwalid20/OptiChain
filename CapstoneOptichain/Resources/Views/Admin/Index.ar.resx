@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Dashboard" xml:space="preserve"><value>لوحة التحكم</value></data>
+  <data name="Managers" xml:space="preserve"><value>المدراء</value></data>
+  <data name="Subscriptions" xml:space="preserve"><value>الاشتراكات</value></data>
+  <data name="Support" xml:space="preserve"><value>الدعم</value></data>
+  <data name="Payments" xml:space="preserve"><value>المدفوعات</value></data>
+  <data name="Renewal Requests" xml:space="preserve"><value>طلبات التجديد</value></data>
+  <data name="Settings" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="Logout" xml:space="preserve"><value>تسجيل الخروج</value></data>
+  <data name="Language" xml:space="preserve"><value>اللغة</value></data>
+  <data name="Add Manager" xml:space="preserve"><value>إضافة مدير</value></data>
+  <data name="Total Managers" xml:space="preserve"><value>إجمالي المدراء</value></data>
+  <data name="Active Subscriptions" xml:space="preserve"><value>الاشتراكات النشطة</value></data>
+  <data name="Expired Subscriptions" xml:space="preserve"><value>الاشتراكات المنتهية</value></data>
+  <data name="Total Revenue" xml:space="preserve"><value>إجمالي الإيرادات</value></data>
+  <data name="Recent Managers" xml:space="preserve"><value>المدراء الجدد</value></data>
+  <data name="Name" xml:space="preserve"><value>الاسم</value></data>
+  <data name="Email" xml:space="preserve"><value>البريد الإلكتروني</value></data>
+  <data name="Created Date" xml:space="preserve"><value>تاريخ الإنشاء</value></data>
+  <data name="Status" xml:space="preserve"><value>الحالة</value></data>
+  <data name="Active" xml:space="preserve"><value>نشط</value></data>
+  <data name="Inactive" xml:space="preserve"><value>غير نشط</value></data>
+  <data name="Subscriptions Expiring Soon" xml:space="preserve"><value>الاشتراكات التي تنتهي قريباً</value></data>
+  <data name="Manager" xml:space="preserve"><value>المدير</value></data>
+  <data name="Plan Type" xml:space="preserve"><value>نوع الخطة</value></data>
+  <data name="Amount" xml:space="preserve"><value>المبلغ</value></data>
+  <data name="Expires On" xml:space="preserve"><value>ينتهي في</value></data>
+  <data name="Days Left" xml:space="preserve"><value>الأيام المتبقية</value></data>
+  <data name="Expired" xml:space="preserve"><value>منتهي</value></data>
+  <data name="days" xml:space="preserve"><value>أيام</value></data>
+  <data name="My Profile" xml:space="preserve"><value>ملفي الشخصي</value></data>
+  <data name="Toggle Dark Mode" xml:space="preserve"><value>تبديل الوضع المظلم</value></data>
+</root>

@@ -1,0 +1,64 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+/* Global sidebar reset (fallback for pages that don't load user-profile.js early) */
+.sidebar { width: 220px; background: #fff; border-right: 1px solid #ddd; padding: 20px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar .menu a, .sidebar .bottom-menu a { display: flex; align-items: center; gap: 10px; padding: 10px; margin: 5px 0; text-decoration: none; color: #333; border-radius: 6px; font-size: 14px; line-height: 1.2; }
+.sidebar .menu a i, .sidebar .bottom-menu a i { margin-right: 0; font-size: 16px; min-width: 16px; text-align: center; }
+.sidebar .menu a.active, .sidebar .menu a:hover, .sidebar .bottom-menu a:hover { background: #eef3ff; color: #007bff; }
+
+/* Keep consistent font */
+body, .sidebar { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif; }
+
+/* Dark mode parity */
+body.dark-mode .sidebar { background: #1e1e1e; border-color: #333; }
+body.dark-mode .sidebar .menu a, body.dark-mode .sidebar .bottom-menu a { color: #ccc; }
+body.dark-mode .sidebar .menu a.active, body.dark-mode .sidebar .menu a:hover, body.dark-mode .sidebar .bottom-menu a:hover { background: #333; color: #fff; }
+
+/* Subtle global polish */
+button, .btn, a.btn {
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .05s ease-in-out;
+}
+button:hover, .btn:hover, a.btn:hover { filter: brightness(0.98); }
+button:active, .btn:active, a.btn:active { transform: translateY(1px); }
+
+.card {
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.06);
+}
+
+table {
+  border-collapse: collapse;
+}
+table th, table td {
+  border-bottom: 1px solid #eee;
+}
+table thead th {
+  background: #f9f9f9;
+}
+table tbody tr:hover { background: #fafafa; }
+
+/* RTL helpers (in case JS inject missed early paint) */
+html[dir="rtl"] body { direction: rtl; }
+html[dir="rtl"] .sidebar .menu a i, html[dir="rtl"] .sidebar .bottom-menu a i { margin-left: 10px; margin-right: 0; }
+html[dir="rtl"] .sidebar .menu a, html[dir="rtl"] .sidebar .bottom-menu a { text-align: right; }

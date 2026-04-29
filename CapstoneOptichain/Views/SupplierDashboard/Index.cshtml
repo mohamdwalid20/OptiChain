@@ -1,0 +1,1534 @@
+@model IEnumerable<CapstoneOptichain.Models.Order>
+@{
+    ViewData["Title"] = "Supplier Dashboard";
+    var antiforgery = Context.RequestServices.GetService<Microsoft.AspNetCore.Antiforgery.IAntiforgery>();
+    var tokenSet = antiforgery.GetAndStoreTokens(Context);
+    var tokenValue = tokenSet.RequestToken;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@T["Supplier Dashboard"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #f6f8fc;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode {
+            background: #1a1a1a !important;
+            color: #e0e0e0 !important;
+        }
+
+        .dark-mode .sidebar {
+            background: #2d2d2d !important;
+            border-right-color: #444 !important;
+        }
+
+        .dark-mode .sidebar .menu a,
+        .dark-mode .sidebar .bottom-menu a {
+            color: #e0e0e0 !important;
+        }
+
+        .dark-mode .sidebar .menu a:hover,
+        .dark-mode .sidebar .menu a.active {
+            background: #3a3a3a !important;
+            color: #4a9eff !important;
+        }
+
+        .dark-mode .header,
+        .dark-mode .main-content {
+            background: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+
+        .dark-mode .order-card {
+            background: #3a3a3a !important;
+            border-color: #555 !important;
+            color: #e0e0e0 !important;
+        }
+
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100%;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .menu a,
+        .sidebar .bottom-menu a {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            text-decoration: none;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .menu a.active,
+        .sidebar .menu a:hover {
+            background: #eef3ff;
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-and-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkToggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .dark-mode .dark-toggle {
+            background: #3a3a3a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .current-store-info {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 14px;
+        }
+
+        .notification-bell {
+            position: relative;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dark-mode .notification-dropdown {
+            background: #3a3a3a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .notification-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dark-mode .notification-item {
+            border-bottom-color: #555;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .dark-mode .notification-item:hover {
+            background: #4a4a4a;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .dark-mode .notification-time {
+            color: #aaa;
+        }
+
+        .main-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .main-content h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .orders-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .dark-mode .orders-table th {
+            background: #4a4a4a;
+            color: #e0e0e0;
+        }
+
+        .dark-mode .orders-table td {
+            border-bottom-color: #555;
+        }
+
+        .status-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .status-accepted {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .accept-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+
+        .accept-btn:hover {
+            background: #218838;
+        }
+
+        .accepted-status {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-orders i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .main {
+                padding: 10px;
+            }
+
+            .orders-table {
+                font-size: 14px;
+            }
+
+            .orders-table th,
+            .orders-table td {
+                padding: 8px;
+            }
+        }
+
+        .notification-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.35);
+            justify-content: center;
+            align-items: center;
+        }
+        .notification-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90vw;
+            padding: 24px 20px 16px 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            position: relative;
+            animation: fadeIn 0.2s;
+        }
+        @@keyframes fadeIn {
+            from { transform: translateY(-40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 22px;
+            color: #888;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        .close-modal:hover {
+            color: #dc3545;
+        }
+        .notification-modal h3 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 20px;
+            color: #007bff;
+            text-align: center;
+        }
+        .notification-list {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .notification-modal .notification-item {
+            background: #f8f9fa;
+            border-radius: 7px;
+            margin-bottom: 10px;
+            padding: 12px 10px 8px 10px;
+            border: 1px solid #e3e3e3;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: background 0.2s;
+        }
+        .notification-modal .notification-item:last-child {
+            margin-bottom: 0;
+        }
+        .notification-modal .notification-message {
+            font-size: 15px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+        .notification-modal .notification-time {
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+        }
+        .dark-mode .notification-modal-content {
+            background: #23272b;
+            color: #e0e0e0;
+        }
+        .dark-mode .notification-modal .notification-item {
+            background: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        .dark-mode .notification-modal .notification-message {
+            color: #e0e0e0;
+        }
+        .dark-mode .notification-modal .notification-time {
+            color: #aaa;
+        }
+        /* DARK MODE - unified with manager dashboard */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .card,
+        body.dark-mode .graph-card,
+        body.dark-mode .stock-card,
+        body.dark-mode .sidebar,
+        body.dark-mode .main,
+        body.dark-mode .header input {
+            background-color: #1e1e1e !important;
+            color: #e0e0e0 !important;
+            border-color: #333 !important;
+        }
+        body.dark-mode .sidebar .menu a,
+        body.dark-mode .sidebar .bottom-menu a {
+            color: #ccc !important;
+        }
+        body.dark-mode .sidebar .menu a:hover,
+        body.dark-mode .sidebar .bottom-menu a:hover {
+            background: #333 !important;
+            color: #fff !important;
+        }
+        body.dark-mode .orders-table th {
+            background: #4a4a4a !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .orders-table td {
+            border-bottom-color: #555 !important;
+        }
+        body.dark-mode .low-stock li {
+            background-color: #6b0000 !important;
+            color: #ffeaea !important;
+        }
+        /* END DARK MODE unified */
+        body.dark-mode .notification-modal-content {
+            background: #23272f !important;
+            color: #fff !important;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.7) !important;
+        }
+        body.dark-mode .notification-modal .notification-item {
+            background: #2d323c !important;
+            color: #fff !important;
+            border: 1px solid #3a3f4b !important;
+        }
+        body.dark-mode .notification-modal .notification-message,
+        body.dark-mode .notification-modal .notification-time {
+            color: #fff !important;
+        }
+        body.dark-mode .notification-modal .notification-item:hover {
+            background: #353a45 !important;
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        /* Dark mode for user profile */
+        body.dark-mode .user-profile-menu {
+            background-color: #1e1e1e !important;
+            border: 1px solid #333 !important;
+        }
+
+        body.dark-mode .user-profile-header {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+            border-bottom-color: #444 !important;
+        }
+
+        body.dark-mode .profile-menu-item {
+            color: #e0e0e0 !important;
+            border-bottom-color: #444 !important;
+        }
+
+        body.dark-mode .profile-menu-item:hover {
+            background-color: #333 !important;
+            color: #fff !important;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            color: #333;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                transform: translateX(-100%);
+                z-index: 1000;
+                width: 280px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                width: 100%;
+                padding: 60px 15px 20px 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .search-and-toggle {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .orders-section {
+                padding: 15px;
+            }
+
+            .order-card {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .order-details {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .notification-bell {
+                top: 20px !important;
+                right: 20px !important;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .main {
+                padding: 60px 10px 20px 10px;
+            }
+
+            .orders-section {
+                padding: 10px;
+            }
+
+            .order-card {
+                padding: 10px;
+            }
+
+            .order-details h3 {
+                font-size: 1.1em;
+            }
+
+            .modal-content {
+                padding: 15px;
+            }
+
+            .notification-bell {
+                top: 15px !important;
+                right: 15px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    @Html.AntiForgeryToken()
+
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                                    <a class="active" href="/SupplierDashboard/Index"><i class="fas fa-chart-line"></i> @T["Dashboard"]</a>
+                <a href="/SupplierDashboard/Stores"><i class="fas fa-store"></i> @T["Stores"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Log Out"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+                <header class="header">
+                <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="Toggle Dark Mode" style="margin-left:10px;"><i class="fas fa-moon"></i></button>
+                    <div id="currentStoreInfo" style="font-weight: bold; color: #007bff; margin-left: 15px;">
+                        @if (TempData["SelectedStore"] != null)
+                        {
+                            <span>@T["Current Store"]: @TempData["SelectedStore"]</span>
+                        }
+                        else
+                        {
+                            <span>@T["No Store Selected"]!</span>
+                        }
+                    </div>
+                    </div>
+                </header>
+
+
+            <div class="notification-bell" id="notificationBell" style="position:fixed;top:24px;right:32px;z-index:9999;">
+                <i class="fa fa-bell fa-lg"></i>
+            </div>
+
+            <div id="notificationModal" class="notification-modal">
+                <div class="notification-modal-content">
+                    <span class="close-modal" id="closeNotificationModal">&times;</span>
+                    <h3>@T["Notifications"]</h3>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-item"><div class="notification-message">@T["Loading notifications..."]</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Proposal Modal -->
+            <div id="priceProposalModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal" id="closePriceModal">&times;</span>
+                    <h3>@T["Send Price Offers"]</h3>
+                    <div id="priceProposalForm">
+                        <div id="orderItemsForPricing"></div>
+                        <div class="modal-actions">
+                                                    <button type="button" id="submitPrices" class="submit-btn">@T["Submit Prices"]</button>
+                        <button type="button" class="cancel-btn" onclick="closePriceModal()">@T["Cancel"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    
+            <section class="main-content">
+                                    <h2>@T["Orders Dashboard"]</h2>
+                    @if (Model != null && Model.Any())
+                    {
+                    <table class="orders-table">
+                                <thead>
+                                    <tr>
+                            <th>@T["Order ID"]</th>
+                            <th>@T["Order Date"]</th>
+                            <th>@T["Expected Delivery"]</th>
+                            <th>@T["Status"]</th>
+                            <th>@T["Action"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model)
+                                    {
+                                        <tr>
+                                            <td>@order.OrderId</td>
+                                            <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (order.ExpectedDeliveryDate.HasValue)
+                                                {
+                                                    @order.ExpectedDeliveryDate.Value.ToString("MMM dd, yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">@T["Not specified"]</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (order.Status == "AcceptedBySupplier")
+                                                {
+                                                    <span class="status-accepted">@T["Accepted"]</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-pending">@T["Pending"]</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("OrderDetails", "SupplierDashboard", new { orderId = order.OrderId })" 
+                                                       class="details-btn" title="View Order Details">
+                                                        <i class="fas fa-eye"></i> @T["Details"]
+                                                    </a>
+                                                    @{
+                                                        var proposedOrderIds = ViewBag.ProposedOrderIds as List<int> ?? new List<int>();
+                                                        bool alreadyProposed = proposedOrderIds.Contains(order.OrderId);
+                                                    }
+                                                    @if (order.Status == "PendingPrice")
+                                                    {
+                                                        if (alreadyProposed)
+                                                        {
+                                                            <button type="button" class="propose-price-btn" disabled title="Offer already sent">
+                                                                <i class="fas fa-check"></i> @T["Sent"]
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button type="button" class="propose-price-btn" data-order-id="@order.OrderId">
+                                                                <i class="fas fa-dollar-sign"></i> @T["Send Offer"]
+                                                            </button>
+                                                        }
+                                                    }
+                                                    else if (order.Status == "PriceProposed")
+                                                    {
+                                                        <span class="text-info">@T["Offer sent - awaiting manager"]</span>
+                                                    }
+                                                </div>
+                                                @if (order.Status == "AcceptedBySupplier")
+                                                {
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <span class="accepted-status">@T["Order Accepted"]</span>
+                                                    </small>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                    }
+                    else
+                    {
+                        <div class="no-orders">
+                        <i class="fas fa-clipboard-list"></i>
+                                                    <div>@T["No orders available"].</div>
+                        </div>
+                    }
+                </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkToggle = document.getElementById('darkToggle');
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            darkToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+                darkToggle.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            });
+
+            document.querySelectorAll('.accept-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    if (!confirm('@T["Are you sure you want to accept this order?"]')) return;
+                    var orderId = this.getAttribute('data-order-id');
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    var row = this.closest('tr');
+                    fetch('/SupplierDashboard/AcceptOrder', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': token
+                        },
+                        body: 'orderId=' + orderId
+                    })
+                    .then(response => {
+                        if (response.ok) {
+
+                            row.remove();
+                            alert('@T["Order accepted successfully!"]');
+                        } else {
+                            alert('@T["Error accepting order. Please try again."]');
+                        }
+                    })
+                    .catch(error => {
+                        alert('@T["Error accepting order. Please try again."]');
+                    });
+                });
+            });
+
+            document.querySelectorAll('.propose-price-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var orderId = this.getAttribute('data-order-id');
+                    showPriceProposalModal(orderId);
+                });
+            });
+        });
+    </script>
+    <script>
+window.onload = function() {
+    var notificationBell = document.getElementById('notificationBell');
+    var notificationModal = document.getElementById('notificationModal');
+    var closeNotificationModal = document.getElementById('closeNotificationModal');
+    var justClosed = false;
+    if (notificationBell && notificationModal && closeNotificationModal) {
+        notificationBell.onclick = function(e) {
+            if (justClosed) {
+                justClosed = false;
+                return;
+            }
+            e.stopPropagation();
+            notificationModal.style.display = 'flex';
+            loadNotifications();
+        };
+        closeNotificationModal.onclick = function(e) {
+            e.stopPropagation();
+            notificationModal.style.display = 'none';
+            justClosed = true;
+            notificationBell.style.pointerEvents = 'none';
+            setTimeout(function() {
+                justClosed = false;
+                notificationBell.style.pointerEvents = '';
+            }, 400);
+        };
+        notificationModal.onclick = function(e) {
+            if (e.target === notificationModal) {
+                notificationModal.style.display = 'none';
+                justClosed = true;
+                notificationBell.style.pointerEvents = 'none';
+                setTimeout(function() {
+                    justClosed = false;
+                    notificationBell.style.pointerEvents = '';
+                }, 400);
+            }
+        };
+        document.querySelector('.notification-modal-content').onclick = function(e) {
+            e.stopPropagation();
+        };
+    }
+};
+function getNotificationUrl() {
+    if (window.location.pathname.toLowerCase().startsWith('/supplierdashboard')) {
+        return '/SupplierDashboard/Notifications';
+    }
+    return '/Dashboard/Notifications';
+}
+function loadNotifications() {
+    const notifList = document.getElementById('notificationList');
+    fetch(getNotificationUrl())
+        .then(r => r.text())
+        .then(html => {
+            notifList.innerHTML = html;
+        })
+        .catch(() => {
+            notifList.innerHTML = '<div class="notification-item"><div class="notification-message">@T["Cant Load Notifications"]</div></div>';
+        });
+}
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notifList = document.getElementById('notificationList');
+    if (notifList) {
+        notifList.addEventListener('click', function(e) {
+            const item = e.target.closest('.notification-item');
+            if (item && item.dataset.id) {
+                const notificationId = item.dataset.id;
+                fetch('/SupplierDashboard/MarkNotificationRead', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'notificationId=' + notificationId
+                }).then(r => r.json()).then(data => {
+                    if (data.success) {
+                        item.classList.add('read');
+                        setTimeout(() => item.remove(), 200);
+                    }
+                });
+            }
+        });
+    }
+});
+    </script>
+    <script>
+        document.querySelectorAll('.reject-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (!confirm('@T["Are you sure you want to reject this order?"]')) return;
+                var orderId = this.getAttribute('data-order-id');
+                var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                var row = this.closest('tr');
+                fetch('/SupplierDashboard/RejectOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: 'orderId=' + orderId
+                })
+                .then(response => {
+                    if (response.ok) {
+                        row.remove();
+                        alert('@T["Order rejected successfully!"]');
+                    } else {
+                        alert('@T["Error rejecting order. Please try again."]');
+                    }
+                })
+                .catch(error => {
+                    alert('@T["Error rejecting order. Please try again."]');
+                });
+            });
+        });
+    </script>
+    <style>
+
+        .reject-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-left: 4px;
+        }
+
+            .reject-btn:hover {
+                background: #bd2130;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
+            }
+
+            .reject-btn i {
+                font-size: 14px;
+            }
+
+
+        .accept-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+            .accept-btn i {
+                font-size: 14px;
+            }
+
+
+        .dark-mode .reject-btn {
+            background: #b52a1a;
+        }
+
+                    .dark-mode .reject-btn:hover {
+            background: #9c2416;
+        }
+
+        .btn-info {
+            color: #fff;
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+
+        .btn-info:hover {
+            color: #fff;
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .details-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .details-btn:hover {
+            background: #138496;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(23, 162, 184, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .details-btn i {
+            font-size: 14px;
+        }
+
+        .dark-mode .details-btn {
+            background: #0f7a8a;
+        }
+
+        .dark-mode .details-btn:hover {
+            background: #0d6b79;
+        }
+
+        .propose-price-btn {
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .propose-price-btn:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(255, 193, 7, 0.4);
+            color: #212529;
+            text-decoration: none;
+        }
+
+        .propose-price-btn i {
+            font-size: 14px;
+        }
+
+        .dark-mode .propose-price-btn {
+            background: #d39e00;
+            color: #212529;
+        }
+
+        .dark-mode .propose-price-btn:hover {
+            background: #c69500;
+        }
+
+        /* Price Proposal Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.35);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90vw;
+            padding: 24px 20px 16px 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            position: relative;
+            animation: fadeIn 0.2s;
+        }
+
+        .dark-mode .modal-content {
+            background: #23272b;
+            color: #e0e0e0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        .dark-mode .price-item {
+            background: #2d2d2d;
+            border-color: #555;
+        }
+
+        .price-item-info {
+            flex: 1;
+        }
+
+        .price-item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .price-item-quantity {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .dark-mode .price-item-quantity {
+            color: #aaa;
+        }
+
+        .price-input {
+            width: 120px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .dark-mode .price-input {
+            background: #3a3a3a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <style>
+body.dark-mode {
+    background: #121212 !important;
+    color: #e0e0e0 !important;
+}
+.accept-btn.reject-btn {
+    background: #dc3545;
+}
+.accept-btn.reject-btn:hover {
+    background: #b52a1a;
+}
+</style>
+
+<script>
+    let currentOrderId = null;
+
+    function showPriceProposalModal(orderId) {
+        currentOrderId = orderId;
+        console.log('Opening price proposal modal for order:', orderId);
+        
+        // Show loading state
+        document.getElementById('orderItemsForPricing').innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> @T["Loading order items..."]</div>';
+        document.getElementById('priceProposalModal').style.display = 'flex';
+        
+        const url = `/SupplierDashboard/GetOrderItemsForPricing/${orderId}`;
+        console.log('Fetching from URL:', url);
+        
+        fetch(url)
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`@T["HTTP error! status:"] ${response.status}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data && data.success) {
+                    let itemsHtml = '';
+                    if (data.data && Array.isArray(data.data)) {
+                        data.data.forEach(item => {
+                            itemsHtml += `
+                                <div class="price-item">
+                                    <div class="price-item-info">
+                                        <div class="price-item-name">${item.productName || '@T["Unknown Product"]'}</div>
+                                        <div class="price-item-quantity">@T["Quantity:"] ${item.quantity || 0}</div>
+                                    </div>
+                                    <input type="number" step="0.01" min="0.01" class="price-input" 
+                                           placeholder="@T["Enter price"]" required>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        itemsHtml = '<div class="alert alert-warning">@T["No items found for this order."]</div>';
+                    }
+                    
+                    document.getElementById('orderItemsForPricing').innerHTML = itemsHtml;
+                } else {
+                    const errorMessage = data && data.message ? data.message : '@T["Unknown error occurred"]';
+                    document.getElementById('orderItemsForPricing').innerHTML = 
+                        `<div class="alert alert-danger">@T["Error:"] ${errorMessage}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading order items:', error);
+                document.getElementById('orderItemsForPricing').innerHTML = 
+                    `<div class="alert alert-danger">@T["Error loading order items:"] ${error.message}</div>`;
+            });
+    }
+
+    function closePriceModal() {
+        document.getElementById('priceProposalModal').style.display = 'none';
+        currentOrderId = null;
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('priceProposalModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePriceModal();
+        }
+    });
+
+    // Close modal with X button
+    document.getElementById('closePriceModal').addEventListener('click', closePriceModal);
+
+    // Submit prices
+    document.getElementById('submitPrices').addEventListener('click', function() {
+        const priceInputs = document.querySelectorAll('.price-input');
+        const prices = Array.from(priceInputs).map(input => parseFloat(input.value));
+        
+        if (prices.some(price => isNaN(price) || price <= 0)) {
+            alert('Please enter valid prices for all items.');
+            return;
+        }
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        
+        // Create FormData for proper form submission
+        const formData = new FormData();
+        formData.append('orderId', currentOrderId);
+        formData.append('proposedPrices', prices.join(','));
+        formData.append('__RequestVerificationToken', token);
+        
+        fetch('/SupplierDashboard/ProposePrice', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Prices proposed successfully!');
+                closePriceModal();
+                // Disable the button and show Sent without full reload to improve UX
+                const btn = document.querySelector(`.propose-price-btn[data-order-id="${currentOrderId}"]`);
+                if (btn) {
+                    btn.setAttribute('disabled', 'disabled');
+                    btn.innerHTML = '<i class="fas fa-check"></i> Sent';
+                    btn.removeAttribute('data-order-id');
+                }
+            } else {
+                alert('Error proposing prices: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error proposing prices. Please try again.');
+        });
+    });
+
+    // User Profile Dropdown functionality
+    function toggleUserProfile() {
+        const menu = document.getElementById('userProfileMenu');
+        menu.classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.querySelector('.user-profile-dropdown');
+        const menu = document.getElementById('userProfileMenu');
+        
+        if (!dropdown.contains(event.target)) {
+            menu.classList.remove('show');
+        }
+    });
+
+    // Load shared user profile system
+    const script = document.createElement('script');
+    script.src = '/js/user-profile.js';
+    script.onload = function() {
+        if (typeof initializeUserProfile === 'function') {
+            initializeUserProfile();
+        }
+    };
+    document.head.appendChild(script);
+
+    // Mobile sidebar toggle function
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const sidebar = document.querySelector('.sidebar');
+        const mobileToggle = document.querySelector('.mobile-menu-toggle');
+        if (window.innerWidth <= 768 && 
+            !sidebar.contains(event.target) && 
+            !mobileToggle.contains(event.target)) {
+            sidebar.classList.remove('open');
+        }
+    });
+</script>
+
+</body>
+</html> 

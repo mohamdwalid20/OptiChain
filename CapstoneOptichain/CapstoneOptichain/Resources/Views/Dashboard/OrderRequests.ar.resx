@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Current Store" xml:space="preserve"><value>المخزن الحالي</value></data>
+  <data name="No Store Selected!" xml:space="preserve"><value>لا يوجد مخزن محدد!</value></data>
+  <data name="Order Requests" xml:space="preserve"><value>طلبات الطلب</value></data>
+  <data name="No order requests found." xml:space="preserve"><value>لا توجد طلبات.</value></data>
+  <data name="Request ID" xml:space="preserve"><value>رقم الطلب</value></data>
+  <data name="Worker" xml:space="preserve"><value>العامل</value></data>
+  <data name="Order ID" xml:space="preserve"><value>رقم الأوردر</value></data>
+  <data name="Order Type" xml:space="preserve"><value>نوع الأوردر</value></data>
+  <data name="Request Date" xml:space="preserve"><value>تاريخ الطلب</value></data>
+  <data name="Status" xml:space="preserve"><value>الحالة</value></data>
+  <data name="Actions" xml:space="preserve"><value>الإجراءات</value></data>
+  <data name="Purchase" xml:space="preserve"><value>شراء</value></data>
+  <data name="Sale" xml:space="preserve"><value>بيع</value></data>
+  <data name="Pending" xml:space="preserve"><value>قيد الانتظار</value></data>
+  <data name="Approved" xml:space="preserve"><value>مقبول</value></data>
+  <data name="Rejected" xml:space="preserve"><value>مرفوض</value></data>
+  <data name="View Order Details" xml:space="preserve"><value>عرض تفاصيل الأوردر</value></data>
+  <data name="Details" xml:space="preserve"><value>تفاصيل</value></data>
+  <data name="Approve" xml:space="preserve"><value>قبول</value></data>
+  <data name="Reject" xml:space="preserve"><value>رفض</value></data>
+  <data name="Responded" xml:space="preserve"><value>تم الرد</value></data>
+  <data name="Notes" xml:space="preserve"><value>ملاحظات</value></data>
+</root>
+
+

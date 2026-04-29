@@ -1,0 +1,600 @@
+@model IEnumerable<CapstoneOptichain.Models.Store>
+@{
+    ViewData["Title"] = "Stores";
+    var antiforgery = Context.RequestServices.GetService<Microsoft.AspNetCore.Antiforgery.IAntiforgery>();
+    var tokenSet = antiforgery.GetAndStoreTokens(Context);
+    var tokenValue = tokenSet.RequestToken;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@T["Select Store"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #f6f8fc;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode {
+            background: #1a1a1a !important;
+            color: #e0e0e0 !important;
+        }
+
+        .dark-mode .sidebar {
+            background: #2d2d2d !important;
+            border-right-color: #444 !important;
+        }
+
+        .dark-mode .sidebar .menu a,
+        .dark-mode .sidebar .bottom-menu a {
+            color: #e0e0e0 !important;
+        }
+
+        .dark-mode .sidebar .menu a:hover,
+        .dark-mode .sidebar .menu a.active {
+            background: #3a3a3a !important;
+            color: #4a9eff !important;
+        }
+
+        .dark-mode .header,
+        .dark-mode .manage-store-section {
+            background: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+
+        .dark-mode .store-item {
+            background: #3a3a3a !important;
+            border-color: #555 !important;
+            color: #e0e0e0 !important;
+        }
+
+        .dark-mode .store-item:hover {
+            background: #4a4a4a !important;
+        }
+
+        .dark-mode .store-item.active {
+            border-color: #4a9eff !important;
+            background: #2a4a6a !important;
+        }
+
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100%;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .menu a,
+        .sidebar .bottom-menu a {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            text-decoration: none;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .menu a.active,
+        .sidebar .menu a:hover {
+            background: #eef3ff;
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-and-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkToggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .dark-mode .dark-toggle {
+            background: #3a3a3a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .current-store-info {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 14px;
+        }
+
+        .manage-store-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .manage-store-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .manage-store-header h2 {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .store-list {
+            margin-top: 20px;
+        }
+
+        .store-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .store-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .store-item.active {
+            border: 2px solid #007bff;
+            background-color: #eef3ff;
+        }
+
+        .store-details {
+            flex-grow: 1;
+        }
+
+        .store-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .branch-name {
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .store-address, .store-contact {
+            color: #777;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+        }
+
+        .store-status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .status-select {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .status-select:hover {
+            background-color: #0056b3;
+        }
+
+        .no-stores {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-stores i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .main {
+                padding: 10px;
+            }
+
+            .store-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .store-status {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        /* Dark mode for user profile */
+        body.dark-mode .user-profile-menu {
+            background-color: #1e1e1e !important;
+            border: 1px solid #333 !important;
+        }
+
+        body.dark-mode .user-profile-header {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+            border-bottom-color: #444 !important;
+        }
+
+        body.dark-mode .profile-menu-item {
+            color: #e0e0e0 !important;
+            border-bottom-color: #444 !important;
+        }
+
+        body.dark-mode .profile-menu-item:hover {
+            background-color: #333 !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <input type="hidden" name="__RequestVerificationToken" value="@tokenValue" />
+
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                                    <a href="/SupplierDashboard/Index"><i class="fas fa-chart-line"></i> @T["Dashboard"]</a>
+                <a class="active" href="/SupplierDashboard/Stores"><i class="fas fa-store"></i> @T["Stores"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Log Out"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="@T["Toggle Dark Mode"]">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div id="currentStoreInfo" style="font-weight: bold; color: #007bff; margin-left: 15px;">
+                        @if (TempData["SelectedStore"] != null)
+                        {
+                            <span>@T["Current Store"]: @TempData["SelectedStore"]</span>
+                        }
+                        else
+                        {
+                            <span>@T["No Store Selected"]!</span>
+                        }
+                    </div>
+                </div>
+            </header>
+
+            <section class="manage-store-section">
+                <div class="manage-store-header">
+                    <h2>@T["Manage Store"]</h2>
+                </div>
+                <div class="store-list">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var store in Model)
+                        {
+                            var isCurrent = TempData["SelectedStore"]?.ToString() == store.StoreName;
+                            <div class="store-item" data-store-id="@store.StoreId" data-store-name="@store.StoreName">
+                                <div class="store-details">
+                                    <div class="store-name">
+                                        @store.StoreName
+                                        @if (!isCurrent)
+                                        {
+                                            <span class="store-status status-select select-store-btn" data-store-id="@store.StoreId" style="margin-left:10px; cursor:pointer; border-radius:20px; background:#007bff; color:white; padding:6px 18px; font-weight:bold;">@T["Select"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="store-status status-in-use" style="margin-left:10px; border-radius:20px; background:#28a745; color:white; padding:6px 18px; font-weight:bold;">@T["In Use"]</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(store.BranchName))
+                                    {
+                                        <div class="branch-name">@store.BranchName</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(store.Address))
+                                    {
+                                        <div class="store-address">@store.Address</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(store.ContactNumber))
+                                    {
+                                        <div class="store-contact">@store.ContactNumber</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="no-stores">
+                            <i class="fas fa-store"></i>
+                            <div>@T["No stores available"].</div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkToggle = document.getElementById('darkToggle');
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            darkToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+                darkToggle.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            });
+
+            document.querySelectorAll('.select-store-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var storeId = this.getAttribute('data-store-id');
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    fetch('/SupplierDashboard/SelectStore', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': token
+                        },
+                        body: 'storeId=' + storeId
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/SupplierDashboard/Index';
+                        } else {
+                            alert(data.message || '@T["Error selecting store. Please try again."]');
+                        }
+                    })
+                    .catch(error => {
+                        alert('@T["Error selecting store. Please try again."]');
+                    });
+                });
+            });
+        });
+
+        // User Profile Dropdown functionality
+        function toggleUserProfile() {
+            const menu = document.getElementById('userProfileMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.user-profile-dropdown');
+            const menu = document.getElementById('userProfileMenu');
+            
+            if (!dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+            // Load shared user profile system
+            const script = document.createElement('script');
+            script.src = '/js/user-profile.js';
+            script.onload = function() {
+                if (typeof initializeUserProfile === 'function') {
+                    initializeUserProfile();
+                }
+            };
+            document.head.appendChild(script);
+    </script>
+</body>
+</html> 

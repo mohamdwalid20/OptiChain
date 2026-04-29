@@ -1,0 +1,1141 @@
+﻿
+@model CapstoneOptichain.Models.SignUpViewModel
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+
+<!DOCTYPE html>
+<html lang="@System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="MyWebSite" />
+<link rel="manifest" href="/favicon/site.webmanifest" />
+<link href="~/Index2.css" rel="stylesheet" />
+<link href="~/css/profile-image.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+@using CapstoneOptichain.Models
+<div class="container">
+    <div class="logo">
+        <img src="@Url.Content("~/css/logo with word.png")" alt="@T["OptiChain Logo"]">
+    </div>
+    <div class="login-section">
+        <img src="@Url.Content("~/css/logo.png")" alt="@T["Login Icon"]" class="login-icon">
+        <h2>@T["Create An Account"]</h2>
+        <p>@T["Start your free trial."]</p>
+
+@if (!string.IsNullOrEmpty(ViewBag.Error))
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<form action="/Dashboard/Create" method="post" id="signupForm" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        <label for="UserType">@T["Role"]</label>
+        <select name="UserType" id="UserType" class="form-control" required>
+            <option value="">-- @T["Select Role"] --</option>
+            <option value="supplier" selected>@T["Supplier"]</option>
+        </select>
+        <span class="validation-error" id="userTypeError" style="display: none;"></span>
+        <small class="form-text text-muted">@T["Only supplier registration is available. Managers and workers are added by admin."]</small>
+    </div>
+
+<!-- Profile Image Section -->
+    <div class="profile-image-section" id="profileImageSection" style="display: none;">
+    <label for="profileImage">@T["Profile Image"]</label>
+    <div class="image-upload-container">
+        <div class="image-preview" id="imagePreview">
+                <img id="previewImg" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjVGNUY1Ii8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNDAiIHI9IjIwIiBmaWxsPSIjQ0NDIi8+CjxwYXRoIGQ9Ik0yMCAxMDBDMTUgOTAgMjAgODAgMzAgNzVDNDAgNzAgNjAgNzAgODAgNzBDMTAwIDcwIDEyMCA3MCAxMzAgNzVDMTQwIDgwIDE0NSA5MCAxNDAgMTAwSDEyMFYxMDBIMjBaIiBmaWxsPSIjQ0NDIi8+Cjwvc3ZnPgo=" alt="@T["Profile Preview"]" style="display: none;">
+            <div id="uploadPlaceholder">
+                <i class="fas fa-user"></i>
+                <span>@T["Click to upload or take photo"]</span>
+            </div>
+        </div>
+        <input type="file" id="profileImage" name="ProfileImage" accept="image/*" capture="user" style="display: none;">
+        <div class="image-actions">
+            <button type="button" class="btn-camera" onclick="openCamera()">
+                <i class="fas fa-camera"></i> @T["Camera"]
+            </button>
+            <button type="button" class="btn-upload" onclick="openFileUpload()">
+                <i class="fas fa-upload"></i> @T["Upload"]
+            </button>
+        </div>
+    </div>
+    </div>
+
+    <div id="workerFields" class="role-fields" style="display: none;">
+        <div class="form-group">
+            <label for="workerName">@T["Name"]</label>
+            <input name="Name" type="text" id="workerName" placeholder="@T["Enter your Name"]" class="form-control" required>
+            <span class="validation-error" id="workerNameError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="workerEmail">@T["Email"]</label>
+            <input name="Email" type="email" id="workerEmail" placeholder="@T["Enter your email"]" class="form-control" required>
+            <span class="validation-error" id="workerEmailError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="workerPassword">@T["Password"]</label>
+                            <input name="Password" type="password" id="workerPassword" placeholder="@T["Password Placeholder"]" class="form-control" required>
+            <span class="validation-error" id="workerPasswordError" style="display: none;"></span>
+            <small class="form-text text-muted">@T["Must be at least 6 characters"]</small>
+        </div>
+        <div class="form-group">
+            <label for="workerConfirmPassword">@T["Confirm Password"]</label>
+                            <input name="ConfirmPassword" type="password" id="workerConfirmPassword" placeholder="@T["Password Placeholder"]" class="form-control" required>
+            <span class="validation-error" id="workerConfirmPasswordError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="workerPhoneNumber">@T["Phone Number"]</label>
+            <input name="Phone" type="text" id="workerPhoneNumber" placeholder="@T["Enter Your Phone Number"]" class="form-control" required>
+            <span class="validation-error" id="workerPhoneError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="workerAddress">@T["Address"]</label>
+            <input name="Address" type="text" id="workerAddress" placeholder="@T["Enter your Address"]" class="form-control">
+            <span class="validation-error" id="workerAddressError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="workerDepartment">@T["Department"]</label>
+            <input name="Department" type="text" id="workerDepartment" placeholder="@T["Enter your Department"]" class="form-control">
+            <span class="validation-error" id="workerDepartmentError" style="display: none;"></span>
+        </div>
+    </div>
+
+    <div id="managerFields" class="role-fields" style="display: none;">
+        <div class="form-group">
+            <label for="managerName">@T["Name"]</label>
+            <input name="Name" type="text" id="managerName" placeholder="@T["Enter your Name"]" class="form-control" required>
+            <span class="validation-error" id="managerNameError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="managerEmail">@T["Email"]</label>
+            <input name="Email" type="email" id="managerEmail" placeholder="@T["Enter your email"]" class="form-control" required>
+            <span class="validation-error" id="managerEmailError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="managerPassword">@T["Password"]</label>
+                            <input name="Password" type="password" id="managerPassword" placeholder="@T["Password Placeholder"]" class="form-control" required>
+            <span class="validation-error" id="managerPasswordError" style="display: none;"></span>
+            <small class="form-text text-muted">@T["Must be at least 6 characters"]</small>
+        </div>
+        <div class="form-group">
+            <label for="managerConfirmPassword">@T["Confirm Password"]</label>
+                            <input name="ConfirmPassword" type="password" id="managerConfirmPassword" placeholder="@T["Password Placeholder"]" class="form-control" required>
+            <span class="validation-error" id="managerConfirmPasswordError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="managerPhone">@T["Phone Number"]</label>
+            <input name="Phone" type="text" id="managerPhone" placeholder="@T["Enter Your Phone Number"]" class="form-control" required>
+            <span class="validation-error" id="managerPhoneError" style="display: none;"></span>
+        </div>
+    </div>
+
+    <div id="supplierFields" class="role-fields" style="display: block;">
+        <div class="form-group">
+            <label for="supplierName">@T["Supplier Name"]</label>
+            <input name="Name" type="text" id="supplierName" placeholder="@T["Enter Supplier Name"]" class="form-control" required>
+            <span class="validation-error" id="supplierNameError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="supplierEmail">@T["Email"]</label>
+            <input name="Email" type="email" id="supplierEmail" placeholder="@T["Enter your email"]" class="form-control" required>
+            <span class="validation-error" id="supplierEmailError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="supplierPassword">@T["Password"]</label>
+                            <input name="Password" type="password" id="supplierPassword" placeholder="@T["Password Placeholder"]" class="form-control" required>
+            <span class="validation-error" id="supplierPasswordError" style="display: none;"></span>
+            <small class="form-text text-muted">@T["Must be at least 6 characters"]</small>
+        </div>
+        <div class="form-group">
+            <label for="supplierConfirmPassword">@T["Confirm Password"]</label>
+                            <input name="ConfirmPassword" type="password" id="supplierConfirmPassword" placeholder="@T["Password Placeholder"]" class="form-control" required>
+            <span class="validation-error" id="supplierConfirmPasswordError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="supplierContactNumber">@T["Contact Number"]</label>
+            <input name="Phone" type="text" id="supplierContactNumber" placeholder="@T["Enter Contact Number"]" class="form-control">
+            <span class="validation-error" id="supplierPhoneError" style="display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="supplierAddress">@T["Address"]</label>
+            <input name="Address" type="text" id="supplierAddress" placeholder="@T["Enter Address"]" class="form-control">
+            <span class="validation-error" id="supplierAddressError" style="display: none;"></span>
+        </div>
+    </div>
+
+    <button type="submit" class="btn-primary">@T["Sign up"]</button>
+
+    <div class="options">
+        <a href="~/Dashboard/Index4">@T["Forgot password"]</a>
+    </div>
+</form>
+
+        <div class="role-container">
+
+
+
+        <button type="button" class="btn-google" onclick="handleGoogleSignIn()">
+            <img src="@Url.Content("~/css/Google.png")" alt="@T["Sign in with Google"]">
+            @T["Sign Up With Google as Supplier"]
+        </button>
+
+        <p class="signup-text">@T["Already have an account?"] <a href="~/Dashboard/Index">@T["Sign In"]</a></p>
+    </div>
+</div>
+
+<script src="~/js/profile-image.js"></script>
+<script src="~/js/user-profile.js"></script>
+<script>
+    console.log('Main script loaded successfully');
+    
+    // Wait for DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeForm);
+        } else {
+        initializeForm();
+    }
+    
+    function initializeForm() {
+        console.log('Initializing form...');
+
+        // Make handleGoogleSignIn globally available
+        window.handleGoogleSignIn = function() {
+            // Google sign up is only available for suppliers
+            const role = 'supplier';
+            
+            // Save role for Google sign up
+            document.cookie = `GoogleUserRole=${role}; path=/`;
+            
+            // Request additional scopes for profile picture
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=891433890288-o9avhese22sli13jj3sp790jad048r7o.apps.googleusercontent.com&scope=email%20profile%20https://www.googleapis.com/auth/userinfo.profile&redirect_uri=${encodeURIComponent('https://localhost:7007/Auth/GoogleCallback')}&response_type=code`;
+            window.location.href = authUrl;
+        };
+
+        // Function to handle Google sign up success (called from Google callback)
+        window.handleGoogleSignUpSuccess = function(userData) {
+            if (userData && userData.name) {
+                // Save user name
+                localStorage.setItem('userName', userData.name);
+                sessionStorage.setItem('userName', userData.name);
+                
+                // Save user image if available
+                if (userData.picture) {
+                    localStorage.setItem('userImage', userData.picture);
+                    sessionStorage.setItem('userImage', userData.picture);
+                }
+                
+                console.log('Google sign up successful:', userData);
+                
+                // Redirect to dashboard or show success message
+                setTimeout(function() {
+                    window.location.href = '/Dashboard/Index3';
+                }, 1000);
+            }
+        };
+
+        // Initialize form functionality
+        const roleSelect = document.getElementById('UserType');
+        const workerFields = document.getElementById('workerFields');
+        const managerFields = document.getElementById('managerFields');
+        const supplierFields = document.getElementById('supplierFields');
+        const signupForm = document.getElementById('signupForm');
+        const profileImageSection = document.getElementById('profileImageSection');
+
+        // Ensure profile image section is hidden on page load
+        if (profileImageSection) {
+            profileImageSection.style.display = 'none';
+            console.log('Profile image section hidden on page load');
+        } else {
+            console.error('Profile image section not found during initialization!');
+        }
+
+        // Add error handling for profile images
+        function handleProfileImageError(img) {
+            img.onerror = function() {
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjVGNUY1Ii8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNDAiIHI9IjIwIiBmaWxsPSIjQ0NDIi8+CjxwYXRoIGQ9Ik0yMCAxMDBDMTUgOTAgMjAgODAgMzAgNzVDNDAgNzAgNjAgNzAgODAgNzBDMTAwIDcwIDEyMCA3MCAxMzAgNzVDMTQwIDgwIDE0NSA5MCAxNDAgMTAwSDEyMFYxMDBIMjBaIiBmaWxsPSIjQ0NDIi8+Cjwvc3ZnPgo=';
+            };
+        }
+
+        // Apply error handling to all profile images
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileImages = document.querySelectorAll('#userProfileImage, #previewImg');
+            profileImages.forEach(handleProfileImageError);
+        });
+
+        console.log('All elements found:');
+        console.log('- roleSelect:', roleSelect);
+        console.log('- workerFields:', workerFields);
+        console.log('- managerFields:', managerFields);
+        console.log('- supplierFields:', supplierFields);
+        console.log('- signupForm:', signupForm);
+        console.log('- profileImageSection:', profileImageSection);
+
+        // Check if elements exist
+        if (!roleSelect) {
+            console.error('Role select element not found!');
+            return;
+        }
+        if (!workerFields) {
+            console.error('Worker fields element not found!');
+            return;
+        }
+        if (!managerFields) {
+            console.error('Manager fields element not found!');
+            return;
+        }
+        if (!supplierFields) {
+            console.error('Supplier fields element not found!');
+            return;
+        }
+
+        // Function to show/hide fields based on role selection
+        function showFieldsForRole(role) {
+            console.log('Showing fields for role:', role);
+            
+            // Hide all fields first and disable all inputs
+            if (workerFields) workerFields.style.display = 'none';
+            if (managerFields) managerFields.style.display = 'none';
+            if (supplierFields) supplierFields.style.display = 'none';
+            
+            // Hide profile image section initially
+            const profileImageSection = document.getElementById('profileImageSection');
+            console.log('Profile image section found:', profileImageSection);
+            if (profileImageSection) {
+                profileImageSection.style.display = 'none';
+                console.log('Profile image section hidden initially');
+            } else {
+                console.error('Profile image section not found!');
+            }
+            
+            // Show supplier fields by default if no role selected
+            if (!role || role === '') {
+                console.log('No role selected, showing supplier fields by default');
+                role = 'supplier';
+            }
+            
+            // Disable all inputs first
+            const allInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+            allInputs.forEach(input => {
+                input.disabled = true;
+                input.removeAttribute('name');
+            });
+            
+            // Show fields based on selected role and enable only visible inputs
+            if (role === 'worker') {
+                console.log('Showing worker fields');
+                if (workerFields) workerFields.style.display = 'block';
+                // Show profile image section for worker
+                if (profileImageSection) {
+                    profileImageSection.style.display = 'block';
+                    console.log('Profile image section shown for worker');
+                } else {
+                    console.error('Profile image section not found for worker!');
+                }
+                const workerInputs = workerFields.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+                workerInputs.forEach(input => {
+                    input.disabled = false;
+                    // Restore the original name attribute
+                    if (input.id === 'workerName') input.setAttribute('name', 'Name');
+                    if (input.id === 'workerEmail') input.setAttribute('name', 'Email');
+                    if (input.id === 'workerPassword') input.setAttribute('name', 'Password');
+                    if (input.id === 'workerConfirmPassword') input.setAttribute('name', 'ConfirmPassword');
+                    if (input.id === 'workerPhoneNumber') input.setAttribute('name', 'Phone');
+                    if (input.id === 'workerAddress') input.setAttribute('name', 'Address');
+                    if (input.id === 'workerDepartment') input.setAttribute('name', 'Department');
+                });
+                console.log('Worker fields shown');
+            } else if (role === 'manager') {
+                console.log('Showing manager fields');
+                if (managerFields) managerFields.style.display = 'block';
+                // Show profile image section for manager
+                if (profileImageSection) {
+                    profileImageSection.style.display = 'block';
+                    console.log('Profile image section shown for manager');
+                } else {
+                    console.error('Profile image section not found for manager!');
+                }
+                const managerInputs = managerFields.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+                managerInputs.forEach(input => {
+                    input.disabled = false;
+                    // Restore the original name attribute
+                    if (input.id === 'managerName') input.setAttribute('name', 'Name');
+                    if (input.id === 'managerEmail') input.setAttribute('name', 'Email');
+                    if (input.id === 'managerPassword') input.setAttribute('name', 'Password');
+                    if (input.id === 'managerConfirmPassword') input.setAttribute('name', 'ConfirmPassword');
+                    if (input.id === 'managerPhone') input.setAttribute('name', 'Phone');
+                });
+                console.log('Manager fields shown');
+            } else if (role === 'supplier') {
+                console.log('Showing supplier fields');
+                if (supplierFields) supplierFields.style.display = 'block';
+                // Show profile image section for supplier
+                if (profileImageSection) {
+                    profileImageSection.style.display = 'block';
+                    console.log('Profile image section shown for supplier');
+                } else {
+                    console.error('Profile image section not found for supplier!');
+                }
+                const supplierInputs = supplierFields.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+                supplierInputs.forEach(input => {
+                    input.disabled = false;
+                    // Restore the original name attribute
+                    if (input.id === 'supplierName') input.setAttribute('name', 'Name');
+                    if (input.id === 'supplierEmail') input.setAttribute('name', 'Email');
+                    if (input.id === 'supplierPassword') input.setAttribute('name', 'Password');
+                    if (input.id === 'supplierConfirmPassword') input.setAttribute('name', 'ConfirmPassword');
+                    if (input.id === 'supplierContactNumber') input.setAttribute('name', 'Phone');
+                    if (input.id === 'supplierAddress') input.setAttribute('name', 'Address');
+                });
+                console.log('Supplier fields shown');
+            }
+        }
+
+        // Add event listener to role select
+        if (roleSelect) {
+            console.log('Adding event listener to role select');
+            roleSelect.addEventListener('change', function() {
+                console.log('Role changed to:', this.value);
+                showFieldsForRole(this.value);
+            });
+            
+            // Also add click event for debugging
+            roleSelect.addEventListener('click', function() {
+                console.log('Role select clicked, current value:', this.value);
+            });
+            
+            // Initial call to set up the form (should show supplier fields by default)
+            console.log('Initial setup with role:', roleSelect.value);
+            showFieldsForRole(roleSelect.value || 'supplier');
+        } else {
+            console.error('Role select element is null!');
+        }
+
+        // Alternative approach: Add event listener directly to the select element
+        setTimeout(function() {
+            const roleSelectAlt = document.querySelector('select[name="UserType"]');
+            if (roleSelectAlt && !roleSelect) {
+                console.log('Found role select using alternative method');
+                roleSelectAlt.addEventListener('change', function() {
+                    console.log('Alternative: Role changed to:', this.value);
+                    showFieldsForRole(this.value);
+                });
+            }
+            
+            // Debug: Check if all elements exist
+            console.log('Debug - All elements check:');
+            console.log('UserType select:', document.getElementById('UserType'));
+            console.log('workerFields:', document.getElementById('workerFields'));
+            console.log('managerFields:', document.getElementById('managerFields'));
+            console.log('supplierFields:', document.getElementById('supplierFields'));
+            console.log('profileImageSection:', document.getElementById('profileImageSection'));
+            
+            // Debug: Check if all elements exist
+            console.log('Debug - All elements check:');
+            console.log('UserType select:', document.getElementById('UserType'));
+            console.log('workerFields:', document.getElementById('workerFields'));
+            console.log('managerFields:', document.getElementById('managerFields'));
+            console.log('supplierFields:', document.getElementById('supplierFields'));
+            console.log('profileImageSection:', document.getElementById('profileImageSection'));
+        }, 100);
+
+        // Form validation
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function validatePhone(phone) {
+            // Egyptian phone number validation: 01X followed by 8 digits (total 11 digits)
+            const phoneRegex = /^01[0125]\d{8}$/;
+            return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+        }
+
+        function showError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            if (input && error) {
+                input.style.borderColor = '#dc3545';
+                error.textContent = message;
+                error.style.display = 'block';
+            }
+        }
+
+        function clearError(inputId, errorId) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            if (input && error) {
+                input.style.borderColor = '#ccc';
+                error.style.display = 'none';
+            }
+        }
+
+        // Add validation to form submission
+        if (signupForm) {
+            signupForm.addEventListener('submit', function(e) {
+                console.log('Form submitted');
+                
+                // Clear all previous errors
+                const errorSpans = document.querySelectorAll('.validation-error');
+                errorSpans.forEach(span => {
+                    span.style.display = 'none';
+                });
+                
+                const inputs = document.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    input.style.borderColor = '#ccc';
+                });
+
+                let isValid = true;
+
+                // Check if role is selected
+                if (!roleSelect.value) {
+                    showError('UserType', 'userTypeError', '@T["Please select a role"]');
+                    isValid = false;
+                }
+
+                // Validate fields based on selected role
+                if (roleSelect.value === 'worker') {
+                    // Validate worker fields
+                    const workerName = document.getElementById('workerName').value.trim();
+                    const workerEmail = document.getElementById('workerEmail').value.trim();
+                    const workerPassword = document.getElementById('workerPassword').value;
+                    const workerConfirmPassword = document.getElementById('workerConfirmPassword').value;
+                    const workerPhone = document.getElementById('workerPhoneNumber').value.trim();
+
+                    if (!workerName) {
+                        showError('workerName', 'workerNameError', '@T["Name is required"]');
+                        isValid = false;
+                    }
+                    if (!workerEmail) {
+                        showError('workerEmail', 'workerEmailError', '@T["Email is required"]');
+                        isValid = false;
+                    } else if (!validateEmail(workerEmail)) {
+                        showError('workerEmail', 'workerEmailError', '@T["Please enter a valid email address"]');
+                        isValid = false;
+                    }
+                    if (!workerPassword) {
+                        showError('workerPassword', 'workerPasswordError', '@T["Password is required"]');
+                        isValid = false;
+                    } else if (workerPassword.length < 6) {
+                        showError('workerPassword', 'workerPasswordError', '@T["Password must be at least 6 characters"]');
+                        isValid = false;
+                    }
+                    if (!workerConfirmPassword) {
+                        showError('workerConfirmPassword', 'workerConfirmPasswordError', '@T["Confirm Password is required"]');
+                        isValid = false;
+                    } else if (workerPassword !== workerConfirmPassword) {
+                        showError('workerConfirmPassword', 'workerConfirmPasswordError', '@T["Passwords do not match"]');
+                        isValid = false;
+                    }
+                    if (!workerPhone) {
+                        showError('workerPhoneNumber', 'workerPhoneError', '@T["Phone number is required"]');
+                        isValid = false;
+                    } else if (!validatePhone(workerPhone)) {
+                        showError('workerPhoneNumber', 'workerPhoneError', '@T["Please enter a valid phone number"]');
+                        isValid = false;
+                    }
+                } else if (roleSelect.value === 'manager') {
+                    // Validate manager fields
+                    const managerName = document.getElementById('managerName').value.trim();
+                    const managerEmail = document.getElementById('managerEmail').value.trim();
+                    const managerPassword = document.getElementById('managerPassword').value;
+                    const managerConfirmPassword = document.getElementById('managerConfirmPassword').value;
+                    const managerPhone = document.getElementById('managerPhone').value.trim();
+
+                    if (!managerName) {
+                        showError('managerName', 'managerNameError', '@T["Name is required"]');
+                        isValid = false;
+                    }
+                    if (!managerEmail) {
+                        showError('managerEmail', 'managerEmailError', '@T["Email is required"]');
+                        isValid = false;
+                    } else if (!validateEmail(managerEmail)) {
+                        showError('managerEmail', 'managerEmailError', '@T["Please enter a valid email address"]');
+                        isValid = false;
+                    }
+                    if (!managerPassword) {
+                        showError('managerPassword', 'managerPasswordError', '@T["Password is required"]');
+                        isValid = false;
+                    } else if (managerPassword.length < 6) {
+                        showError('managerPassword', 'managerPasswordError', '@T["Password must be at least 6 characters"]');
+                        isValid = false;
+                    }
+                    if (!managerConfirmPassword) {
+                        showError('managerConfirmPassword', 'managerConfirmPasswordError', '@T["Confirm Password is required"]');
+                        isValid = false;
+                    } else if (managerPassword !== managerConfirmPassword) {
+                        showError('managerConfirmPassword', 'managerConfirmPasswordError', '@T["Passwords do not match"]');
+                        isValid = false;
+                    }
+                    if (!managerPhone) {
+                        showError('managerPhone', 'managerPhoneError', '@T["Phone number is required"]');
+                        isValid = false;
+                    } else if (!validatePhone(managerPhone)) {
+                        showError('managerPhone', 'managerPhoneError', '@T["Please enter a valid phone number"]');
+                        isValid = false;
+                    }
+                } else if (roleSelect.value === 'supplier') {
+                    // Validate supplier fields
+                    const supplierName = document.getElementById('supplierName').value.trim();
+                    const supplierEmail = document.getElementById('supplierEmail').value.trim();
+                    const supplierPassword = document.getElementById('supplierPassword').value;
+                    const supplierConfirmPassword = document.getElementById('supplierConfirmPassword').value;
+
+                    if (!supplierName) {
+                        showError('supplierName', 'supplierNameError', '@T["Supplier name is required"]');
+                        isValid = false;
+                    }
+                    if (!supplierEmail) {
+                        showError('supplierEmail', 'supplierEmailError', '@T["Email is required"]');
+                        isValid = false;
+                    } else if (!validateEmail(supplierEmail)) {
+                        showError('supplierEmail', 'supplierEmailError', '@T["Please enter a valid email address"]');
+                        isValid = false;
+                    }
+                    if (!supplierPassword) {
+                        showError('supplierPassword', 'supplierPasswordError', '@T["Password is required"]');
+                        isValid = false;
+                    } else if (supplierPassword.length < 6) {
+                        showError('supplierPassword', 'supplierPasswordError', '@T["Password must be at least 6 characters"]');
+                        isValid = false;
+                    }
+                    if (!supplierConfirmPassword) {
+                        showError('supplierConfirmPassword', 'supplierConfirmPasswordError', '@T["Confirm Password is required"]');
+                        isValid = false;
+                    } else if (supplierPassword !== supplierConfirmPassword) {
+                        showError('supplierConfirmPassword', 'supplierConfirmPasswordError', '@T["Passwords do not match"]');
+                        isValid = false;
+                    }
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    console.log('Form validation failed');
+                } else {
+                    console.log('Form validation passed');
+                    
+                    // Save user name to localStorage for profile display
+                    let userName = '';
+                    if (roleSelect.value === 'worker') {
+                        userName = document.getElementById('workerName').value.trim();
+                    } else if (roleSelect.value === 'manager') {
+                        userName = document.getElementById('managerName').value.trim();
+                    } else if (roleSelect.value === 'supplier') {
+                        userName = document.getElementById('supplierName').value.trim();
+                    }
+                    
+                    if (userName) {
+                        localStorage.setItem('userName', userName);
+                        sessionStorage.setItem('userName', userName);
+                        console.log('User name saved:', userName);
+                    }
+                    
+                    // Disable submit button to prevent double submission
+                    const submitBtn = signupForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '@T["Processing..."]';
+                    }
+                }
+            });
+        }
+
+        // Add real-time validation for inputs
+        function addInputValidation(inputId, errorId, validationRules) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            
+            if (input && error) {
+                input.addEventListener('input', function() {
+                    clearError(inputId, errorId);
+                });
+                
+                input.addEventListener('blur', function() {
+                    const value = this.value.trim();
+                    let errorMessage = '';
+
+                    if (validationRules.required && !value) {
+                        errorMessage = validationRules.required;
+                    } else if (validationRules.email && value && !validateEmail(value)) {
+                        errorMessage = validationRules.email;
+                    } else if (validationRules.minLength && value && value.length < validationRules.minLength.value) {
+                        errorMessage = validationRules.minLength.message;
+                    } else if (validationRules.phone && value && !validatePhone(value)) {
+                        errorMessage = validationRules.phone;
+                    }
+
+                    if (errorMessage) {
+                        showError(inputId, errorId, errorMessage);
+                    }
+                });
+            }
+        }
+
+        // Add validation to all fields
+        addInputValidation('workerName', 'workerNameError', { required: '@T["Name is required"]' });
+        addInputValidation('workerEmail', 'workerEmailError', { 
+            required: '@T["Email is required"]', 
+            email: '@T["Please enter a valid email address"]' 
+        });
+        addInputValidation('workerPassword', 'workerPasswordError', { 
+            required: '@T["Password is required"]', 
+            minLength: { value: 6, message: '@T["Password must be at least 6 characters"]' }
+        });
+        addInputValidation('workerConfirmPassword', 'workerConfirmPasswordError', { 
+            required: '@T["Confirm Password is required"]'
+        });
+        addInputValidation('workerPhoneNumber', 'workerPhoneError', { 
+            required: '@T["Phone number is required"]', 
+            phone: '@T["Please enter a valid phone number"]' 
+        });
+
+        addInputValidation('managerName', 'managerNameError', { required: '@T["Name is required"]' });
+        addInputValidation('managerEmail', 'managerEmailError', { 
+            required: '@T["Email is required"]', 
+            email: '@T["Please enter a valid email address"]' 
+        });
+        addInputValidation('managerPassword', 'managerPasswordError', { 
+            required: '@T["Password is required"]', 
+            minLength: { value: 6, message: '@T["Password must be at least 6 characters"]' }
+        });
+        addInputValidation('managerConfirmPassword', 'managerConfirmPasswordError', { 
+            required: '@T["Confirm Password is required"]'
+        });
+        addInputValidation('managerPhone', 'managerPhoneError', { 
+            required: '@T["Phone number is required"]', 
+            phone: '@T["Please enter a valid phone number"]' 
+        });
+
+        addInputValidation('supplierName', 'supplierNameError', { required: '@T["Supplier name is required"]' });
+        addInputValidation('supplierEmail', 'supplierEmailError', { 
+            required: '@T["Email is required"]', 
+            email: '@T["Please enter a valid email address"]' 
+        });
+        addInputValidation('supplierPassword', 'supplierPasswordError', { 
+            required: '@T["Password is required"]', 
+            minLength: { value: 6, message: '@T["Password must be at least 6 characters"]' }
+        });
+        addInputValidation('supplierConfirmPassword', 'supplierConfirmPasswordError', { 
+            required: '@T["Confirm Password is required"]'
+        });
+        addInputValidation('supplierContactNumber', 'supplierPhoneError', { 
+            phone: '@T["Please enter a valid phone number"]' 
+        });
+    }
+</script>
+<script src="~/js/site.js"></script>
+
+<style>
+
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 80%;
+        max-width: 1000px;
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 50%;
+    }
+
+        .logo img {
+            max-width: 500px;
+            height: auto;
+        }
+
+    .login-section {
+        flex: 1;
+        text-align: center;
+        width: 50%;
+    }
+
+    .login-icon {
+        display: block;
+        margin: 0 auto 10px;
+        width: 90px;
+        animation: rotateIcon 2s ease-in-out infinite alternate;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    p {
+        text-align: center;
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    label {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    select {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .options {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+        .options a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 10px;
+        width: 100%;
+        animation: pulse 1.5s infinite alternate;
+    }
+
+    .role-container {
+        margin: 15px 0;
+        text-align: center;
+    }
+
+    .role-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .role-select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        width: 200px;
+        margin: 0 auto;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .role-select:disabled {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .btn-google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        color: #333;
+        border: 1px solid #ddd;
+        padding: 8px 15px;
+        font-size: 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 200px;
+        margin: 10px auto;
+        transition: all 0.3s ease;
+    }
+
+        .btn-google img {
+            width: 18px;
+            margin-right: 8px;
+        }
+
+
+        .btn-google:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+
+
+    .btn-primary, .btn-google {
+        margin-bottom: 15px;
+        height: 40px;
+    }
+
+    .signup-text {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .signup-text, .btn-google {
+        margin-top: 20px;
+    }
+
+        .signup-text a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    
+    .validation-error {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .form-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .form-text.text-muted {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* Profile Image Section Styles */
+    .profile-image-section {
+        margin-bottom: 20px !important;
+        text-align: center !important;
+    }
+
+    .image-upload-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .image-preview {
+        width: 120px;
+        height: 120px;
+        border: 2px dashed #ccc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+
+    .image-preview:hover {
+        border-color: #007bff;
+        background-color: #e3f2fd;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    #uploadPlaceholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #666;
+        font-size: 12px;
+    }
+
+    #uploadPlaceholder i {
+        font-size: 24px;
+        margin-bottom: 5px;
+        color: #999;
+    }
+
+    .image-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-camera, .btn-upload {
+        padding: 8px 16px;
+        border: 1px solid #007bff;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-camera:hover, .btn-upload:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .btn-upload {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-upload:hover {
+        background-color: #1e7e34;
+        border-color: #1e7e34;
+    }
+
+    /* Camera Modal Styles */
+    .camera-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .camera-modal-content {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .camera-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .camera-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .close-btn:hover {
+        color: #333;
+    }
+
+    .camera-body {
+        margin-bottom: 20px;
+    }
+
+    #cameraVideo {
+        width: 100%;
+        max-width: 400px;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+    }
+
+    .camera-footer {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-capture, .btn-retake {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-capture {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-capture:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-retake {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-retake:hover {
+        background-color: #545b62;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,1222 @@
+﻿
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .overview-section,
+        .best-selling-category-section,
+        .profit-revenue-section,
+        .best-selling-product-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+    .main {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow-y: auto; 
+    }
+
+    body {
+        overflow: hidden; 
+    }
+
+    .dashboard {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+            .section-header h2 {
+                font-size: 1.5em;
+                color: #333;
+            }
+
+            .section-header a {
+                text-decoration: none;
+                color: #007bff;
+                font-size: 0.9em;
+            }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .overview-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+            .overview-item .value {
+                display: block;
+                font-size: 1.2em;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 5px;
+            }
+
+        .best-selling-category-table,
+        .best-selling-product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .best-selling-category-table th,
+            .best-selling-category-table td,
+            .best-selling-product-table th,
+            .best-selling-product-table td {
+                padding: 10px 15px;
+                text-align: left;
+                border-bottom: 1px solid #eee;
+                font-size: 0.9em;
+            }
+
+            .best-selling-category-table th,
+            .best-selling-product-table th {
+                background: #f9f9f9;
+                font-weight: bold;
+                color: #333;
+            }
+
+        .profit-revenue-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+            .profit-revenue-chart-header button {
+                background: #eef3ff;
+                color: #007bff;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9em;
+            }
+
+                .profit-revenue-chart-header button:hover {
+                    background: #dbe6ff;
+                }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #f6f8fc;
+        }
+
+
+    .sidebar .menu a:hover,
+    .sidebar .bottom-menu a:hover {
+        background: #d9e2ef;
+        color: #007bff;
+    }
+
+    .card, .graph-card, .stock-card {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        color: #333;
+        transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+            /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100%;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+            .sidebar .logo {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            .sidebar .menu a,
+            .sidebar .bottom-menu a {
+                display: block;
+                padding: 10px;
+                margin: 5px 0;
+                text-decoration: none;
+                color: #333;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+
+                .sidebar .menu a.active,
+                .sidebar .menu a:hover {
+                    background: #eef3ff;
+                    color: #007bff;
+                }
+
+
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .search-and-toggle {
+        display: flex; 
+        align-items: center; 
+    }
+
+    .header input {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        width: 300px;
+    }
+
+    .header .dark-mode-logo {
+        font-size: 20px;
+        cursor: pointer;
+        margin-left: 10px; 
+    }
+
+    .user-profile img {
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+    }
+
+        .overview-section,
+        .best-selling-category-section,
+        .profit-revenue-section,
+        .best-selling-product-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+            .section-header h2 {
+                font-size: 1.5em;
+                color: #333;
+            }
+
+            .section-header a {
+                text-decoration: none;
+                color: #007bff;
+                font-size: 0.9em;
+            }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .overview-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+            .overview-item .value {
+                display: block;
+                font-size: 1.2em;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 5px;
+            }
+
+        .best-selling-category-table,
+        .best-selling-product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .best-selling-category-table th,
+            .best-selling-category-table td,
+            .best-selling-product-table th,
+            .best-selling-product-table td {
+                padding: 10px 15px;
+                text-align: left;
+                border-bottom: 1px solid #eee;
+                font-size: 0.9em;
+            }
+
+            .best-selling-category-table th,
+            .best-selling-product-table th {
+                background: #f9f9f9;
+                font-weight: bold;
+                color: #333;
+            }
+
+        .profit-revenue-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+            .profit-revenue-chart-header button {
+                background: #eef3ff;
+                color: #007bff;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9em;
+            }
+
+                .profit-revenue-chart-header button:hover {
+                    background: #dbe6ff;
+                }
+
+
+
+
+
+
+    body.dark-mode {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+        body.dark-mode .card,
+        body.dark-mode .graph-card,
+        body.dark-mode .stock-card,
+        body.dark-mode .sidebar,
+        body.dark-mode .main,
+        body.dark-mode .header input,
+        body.dark-mode .overview-section,
+        body.dark-mode .best-selling-category-section,
+        body.dark-mode .profit-revenue-section,
+        body.dark-mode .best-selling-product-section {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border-color: #333;
+            box-shadow: 0 1px 4px rgba(255, 255, 255, 0.05); 
+        }
+
+            body.dark-mode .sidebar .menu a,
+            body.dark-mode .sidebar .bottom-menu a {
+                color: #ccc;
+            }
+
+                body.dark-mode .sidebar .menu a:hover,
+                body.dark-mode .sidebar .bottom-menu a:hover {
+                    background: #333;
+                    color: #fff;
+                }
+
+        body.dark-mode .low-stock li {
+            background-color: #6b0000;
+            color: #ffeaea;
+        }
+
+        body.dark-mode .section-header h2 {
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .section-header a {
+            color: #5dade2; 
+        }
+
+        body.dark-mode .overview-item {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: #ccc;
+        }
+
+            body.dark-mode .overview-item .value {
+                color: #fff;
+            }
+
+        body.dark-mode .best-selling-category-table th,
+        body.dark-mode .best-selling-category-table td,
+        body.dark-mode .best-selling-product-table th,
+        body.dark-mode .best-selling-product-table td {
+            border-bottom-color: #333;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .best-selling-category-table th,
+        body.dark-mode .best-selling-product-table th {
+            background-color: #333;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .profit-revenue-chart-header button {
+            background-color: #333;
+            color: #5dade2;
+            border-color: #444;
+        }
+
+            body.dark-mode .profit-revenue-chart-header button:hover {
+                background-color: #444;
+                color: #6fc2e8;
+            }
+
+        body.dark-mode .chartjs-ticks-title,
+        body.dark-mode .chartjs-tick {
+            color: #ccc !important;
+        }
+
+
+
+    .profit-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .profit-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .metric-card {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+        .metric-card h3 {
+            color: #555;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .metric-card p {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+
+
+
+
+
+
+    .in-stock {
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .low-stock {
+        color: #ffc107;
+        font-weight: bold;
+    }
+
+    .out-of-stock {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+
+    .best-selling-category-table,
+    .best-selling-product-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+        .best-selling-category-table th,
+        .best-selling-category-table td,
+        .best-selling-product-table th,
+        .best-selling-product-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .best-selling-category-table th,
+        .best-selling-product-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+
+            body.dark-mode .main {
+                background-color: #121212 !important;
+            }
+
+            body.dark-mode .sidebar {
+                background-color: #1a1a1a !important;
+                border-right-color: #333 !important;
+            }
+
+                body.dark-mode .sidebar .menu a,
+                body.dark-mode .sidebar .bottom-menu a {
+                    color: #e0e0e0 !important;
+                }
+
+                    body.dark-mode .sidebar .menu a.active {
+                        background-color: #333 !important;
+                        color: #fff !important;
+                    }
+
+            body.dark-mode .header input {
+                background-color: #333 !important;
+                color: #fff !important;
+                border-color: #444 !important;
+            }
+
+            body.dark-mode .overview-section,
+            body.dark-mode .best-selling-category-section,
+            body.dark-mode .profit-section,
+            body.dark-mode .best-selling-product-section {
+                background-color: #1e1e1e !important;
+                color: #e0e0e0 !important;
+                border-color: #333 !important;
+            }
+
+            body.dark-mode .overview-item {
+                background-color: #2d2d2d !important;
+                border-color: #444 !important;
+                color: #e0e0e0 !important;
+            }
+
+                body.dark-mode .overview-item .value {
+                    color: #fff !important;
+                }
+
+            body.dark-mode .metric-card {
+                background-color: #2d2d2d !important;
+                color: #e0e0e0 !important;
+            }
+
+            body.dark-mode .best-selling-category-table,
+            body.dark-mode .best-selling-product-table {
+                background-color: #1e1e1e !important;
+                color: #e0e0e0 !important;
+            }
+
+                body.dark-mode .best-selling-category-table th,
+                body.dark-mode .best-selling-product-table th {
+                    background-color: #2d2d2d !important;
+                    color: #fff !important;
+                }
+
+                body.dark-mode .best-selling-category-table td,
+                body.dark-mode .best-selling-product-table td {
+                    border-bottom-color: #444 !important;
+                    color: #e0e0e0 !important;
+                }
+
+            body.dark-mode .section-header h2 {
+                color: #fff !important;
+            }
+
+            body.dark-mode .section-header a {
+                color: #64b5f6 !important;
+            }
+
+            body.dark-mode .in-stock {
+                color: #81c784 !important;
+            }
+
+            body.dark-mode .low-stock {
+                color: #ffd54f !important;
+            }
+
+            body.dark-mode .out-of-stock {
+                color: #e57373 !important;
+            }
+
+
+
+
+
+        #darkToggle {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+            #darkToggle i {
+                font-size: 1.2rem;
+                color: #555;
+                transition: all 0.3s ease;
+            }
+
+        .dark-mode #darkToggle i {
+            color: #000000;
+        }
+    </style>
+    <style>
+.notification-bell {
+    position: fixed !important;
+    top: 24px !important;
+    right: 32px !important;
+    z-index: 9999 !important;
+}
+.notification-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999 !important;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.35);
+    justify-content: center !important;
+    align-items: center !important;
+}
+.notification-modal-content {
+    background: #fff;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90vw;
+    padding: 24px 20px 16px 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    position: relative;
+    animation: fadeIn 0.2s;
+}
+@@keyframes fadeIn {
+    from { transform: translateY(-40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.close-modal {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 22px;
+    color: #888;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+.close-modal:hover {
+    color: #dc3545;
+}
+.notification-modal h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 20px;
+    color: #007bff;
+    text-align: center;
+}
+.notification-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+.notification-modal .notification-item {
+    background: #f8f9fa;
+    border-radius: 7px;
+    margin-bottom: 10px;
+    padding: 12px 10px 8px 10px;
+    border: 1px solid #e3e3e3;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: background 0.2s;
+}
+.notification-modal .notification-item:last-child {
+    margin-bottom: 0;
+}
+.notification-modal .notification-message {
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: #333;
+}
+.notification-modal .notification-time {
+    font-size: 12px;
+    color: #888;
+    text-align: right;
+}
+body.dark-mode .notification-item, body.dark-mode .notification-message, body.dark-mode .notification-time {
+    color: #fff !important;
+}
+body.dark-mode .notification-modal-content {
+    background: #23272f !important;
+    color: #fff !important;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.7) !important;
+}
+body.dark-mode .notification-modal .notification-item {
+    background: #2d323c !important;
+    color: #fff !important;
+    border: 1px solid #3a3f4b !important;
+}
+body.dark-mode .notification-modal .notification-message,
+body.dark-mode .notification-modal .notification-time {
+    color: #fff !important;
+}
+body.dark-mode .notification-modal .notification-item:hover {
+    background: #353a45 !important;
+}
+</style>
+<style>
+#notificationBell {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 9999;
+}
+#notificationBell .badge {
+    background: #e53935;
+    color: #fff;
+    border-radius: 50%;
+    padding: 2px 8px;
+    font-size: 13px;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    z-index: 2;
+    min-width: 22px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+</style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div>
+                <div class="logo">🏠</div>
+                <nav class="menu">
+                    <a href="/Dashboard/Index3"><i class="fas fa-chart-line"></i>@T["Dashboard"]</a>
+                    <a href="/Inventory/Index"><i class="fas fa-boxes"></i>@T["Inventory"]</a>
+                    <a class="active" href="/Inventory/Index2"><i class="fas fa-file-alt"></i>@T["Reports"]</a>
+                    <a href="/Order/Index"><i class="fas fa-pallet"></i> @T["Orders"]</a>
+                    <a href="/Dashboard/OrderRequests"><i class="fas fa-clipboard-check"></i> @T["Order Requests"]</a>
+                    <a href="/Category/Index"><i class="fas fa-tags"></i> @T["Categories"]</a>
+                    <a href="/Order/Index2"><i class="fas fa-store-alt"></i> @T["Manage Store"]</a>
+                    <a href="/Manager/Workers"><i class="fas fa-users"></i> @T["Workers"]</a>
+                    <a href="/Manager/Subscription"><i class="fas fa-credit-card"></i> @T["Subscription"]</a>
+                    <a href="/Manager/Support"><i class="fas fa-headset"></i> @T["Support"]</a>
+                </nav>
+            </div>
+            <div class="bottom-menu">
+                <div class="user-profile-dropdown">
+                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                            <i class="fas fa-cog"></i> @T["Settings"]
+                        </a>
+                        <a href="/Dashboard/LogOut" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> @T["Log Out"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+
+        <div class="notification-bell" id="notificationBell" style="position:fixed;top:24px;right:32px;z-index:9999;">
+            <i class="fa fa-bell fa-lg"></i>
+        </div>
+
+        <div id="notificationModal" class="notification-modal">
+            <div class="notification-modal-content">
+                <span class="close-modal" id="closeNotificationModal">&times;</span>
+                <h3>@T["Notifications"]</h3>
+                <div class="notification-list" id="notificationList">
+                    <div class="notification-item"><div class="notification-message">@T["Loading notifications..."]</div></div>
+                </div>
+            </div>
+        </div>
+
+        <main class="main">
+            <header class="header">
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="@T["Toggle Dark Mode"]" style="margin-left:10px;"><i class="fas fa-moon"></i></button>
+                    <div id="currentStoreInfo" style="font-weight: bold; color: #007bff; margin-left: 15px;">
+                        @if (TempData["SelectedStore"] != null)
+                        {
+                            <span>@T["Current Store"]: @TempData["SelectedStore"]</span>
+                        }
+                        else
+                        {
+                            <span>@T["No Store Selected"]!</span>
+                        }
+                    </div>
+
+                </div>
+       
+            </header>
+
+            <section class="overview-section">
+                <div class="section-header">
+                    <h2>@T["Overview"]</h2>
+                </div>
+                <div class="overview-grid">
+                    <div class="overview-item">
+                        <span class="value">@Model.Overview.TotalProfit.ToString("C")</span>
+                        <span>@T["Total Profit"]</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="value">@Model.Overview.Revenue.ToString("C")</span>
+                        <span>@T["Revenue"]</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="value">@Model.Overview.Sales.ToString("N0")</span>
+                        <span>@T["Sales"]</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="value">@Model.Overview.NetPurchaseValue.ToString("C")</span>
+                        <span>@T["Net purchase value"]</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="value">@Model.Overview.NetSalesValue.ToString("C")</span>
+                        <span>@T["Net sales value"]</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="best-selling-category-section">
+                <div class="section-header">
+                    <h2>@T["Best selling category"]</h2>
+                </div>
+                <table class="best-selling-category-table">
+                    <thead>
+                        <tr>
+                            <th>@T["Category"]</th>
+                            <th>@T["Turn Over"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model.TopCategories)
+                        {
+                            <tr>
+                                <td>@category.CategoryName</td>
+                                <td>@category.TurnOver.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="profit-section">
+                <h2>@T["Profit & Revenue"]</h2>
+                <div class="profit-metrics">
+                    <div class="metric-card">
+                        <h3>@T["Total Revenue"]</h3>
+                        <p>@Model.ProfitRevenue.TotalRevenue.ToString("C")</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>@T["Total Cost"]</h3>
+                        <p>@Model.ProfitRevenue.TotalCost.ToString("C")</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>@T["Gross Profit"]</h3>
+                        <p>@Model.ProfitRevenue.GrossProfit.ToString("C")</p>
+                    </div>
+                  
+                </div>
+            </section>
+
+
+            <section class="best-selling-product-section">
+                <div class="section-header">
+                    <h2>@T["Best selling product"]</h2>
+                </div>
+                <table class="best-selling-product-table">
+                    <thead>
+                        <tr>
+                            <th>@T["Product"]</th>
+                            <th>@T["Product ID"]</th>
+                            <th>@T["Category"]</th>
+                            <th>@T["Remaining Quantity"]</th>
+                            <th>@T["Turn Over"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var product in Model.TopProducts)
+                        {
+                            <tr>
+                                <td>@product.ProductName</td>
+                                <td>@product.ProductId</td>
+                                <td>@product.Category</td>
+                                <td>@product.RemainingQuantity</td>
+                                <td>@product.TurnOver.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script src="~/storeContext.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+
+        function toggleDarkMode() {
+            $('body').toggleClass('dark-mode');
+            const isDark = $('body').hasClass('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+            if (isDark) {
+                $('#darkToggle').html('<i class="fas fa-sun" style="color:#000"></i>');
+            } else {
+                $('#darkToggle').html('<i class="fas fa-moon" style="color:#555"></i>');
+            }
+        }
+
+
+        $(document).ready(function() {
+
+            if (localStorage.getItem('theme') === 'dark') {
+                $('body').addClass('dark-mode');
+                $('#darkToggle').html('<i class="fas fa-sun" style="color:#000"></i>');
+            }
+
+
+            $('#darkToggle').click(toggleDarkMode);
+
+
+            const profitRevenueCtx = document.getElementById('profitRevenueChart');
+            if (profitRevenueCtx) {
+                new Chart(profitRevenueCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
+                        datasets: [
+                            {
+                                label: 'Revenue',
+                                data: [@Model.ProfitRevenue.TotalRevenue * 0.3, @Model.ProfitRevenue.TotalRevenue * 0.5, @Model.ProfitRevenue.TotalRevenue * 0.7, @Model.ProfitRevenue.TotalRevenue, @Model.ProfitRevenue.TotalRevenue * 0.9, @Model.ProfitRevenue.TotalRevenue * 1.1, @Model.ProfitRevenue.TotalRevenue * 1.3],
+                                borderColor: '#35C66B',
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Profit',
+                                data: [@Model.ProfitRevenue.GrossProfit * 0.3, @Model.ProfitRevenue.GrossProfit * 0.5, @Model.ProfitRevenue.GrossProfit * 0.7, @Model.ProfitRevenue.GrossProfit, @Model.ProfitRevenue.GrossProfit * 0.9, @Model.ProfitRevenue.GrossProfit * 1.1, @Model.ProfitRevenue.GrossProfit * 1.3],
+                                borderColor: '#007bff',
+                                fill: false,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ₹' + context.raw.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+window.onload = function() {
+    var notificationBell = document.getElementById('notificationBell');
+    var notificationModal = document.getElementById('notificationModal');
+    var closeNotificationModal = document.getElementById('closeNotificationModal');
+    var justClosed = false;
+    if (notificationBell && notificationModal && closeNotificationModal) {
+        notificationBell.onclick = function(e) {
+            if (justClosed) {
+                justClosed = false;
+                return;
+            }
+            e.stopPropagation();
+            notificationModal.style.display = 'flex';
+            loadNotifications();
+        };
+        closeNotificationModal.onclick = function(e) {
+            e.stopPropagation();
+            notificationModal.style.display = 'none';
+            justClosed = true;
+            notificationBell.style.pointerEvents = 'none';
+            setTimeout(function() {
+                justClosed = false;
+                notificationBell.style.pointerEvents = '';
+            }, 400);
+        };
+        notificationModal.onclick = function(e) {
+            if (e.target === notificationModal) {
+                notificationModal.style.display = 'none';
+                justClosed = true;
+                notificationBell.style.pointerEvents = 'none';
+                setTimeout(function() {
+                    justClosed = false;
+                    notificationBell.style.pointerEvents = '';
+                }, 400);
+            }
+        };
+        document.querySelector('.notification-modal-content').onclick = function(e) {
+            e.stopPropagation();
+        };
+    }
+};
+function getNotificationUrl() {
+    if (window.location.pathname.toLowerCase().startsWith('/supplierdashboard')) {
+        return '/SupplierDashboard/Notifications';
+    }
+    return '/Dashboard/Notifications';
+}
+function loadNotifications() {
+    const notifList = document.getElementById('notificationList');
+    fetch(getNotificationUrl())
+        .then(r => r.text())
+        .then(html => {
+            notifList.innerHTML = html;
+        })
+        .catch(() => {
+            notifList.innerHTML = '<div class="notification-item"><div class="notification-message">تعذر تحميل الإشعارات</div></div>';
+        });
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notifList = document.getElementById('notificationList');
+    if (notifList) {
+        notifList.addEventListener('click', function(e) {
+            const item = e.target.closest('.notification-item');
+            if (item && item.dataset.id) {
+                const notificationId = item.dataset.id;
+                fetch('/SupplierDashboard/MarkNotificationRead', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'notificationId=' + notificationId
+                }).then(r => r.json()).then(data => {
+                    if (data.success) {
+                        item.classList.add('read');
+                        setTimeout(() => item.remove(), 200);
+                    }
+                });
+            }
+        });
+    }
+});
+</script>
+<style>
+body.dark-mode {
+    background: #121212 !important;
+    color: #e0e0e0 !important;
+}
+</style>
+
+<script>
+    // User Profile Dropdown functionality
+    function toggleUserProfile() {
+        const menu = document.getElementById('userProfileMenu');
+        menu.classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.querySelector('.user-profile-dropdown');
+        const menu = document.getElementById('userProfileMenu');
+        
+        if (!dropdown.contains(event.target)) {
+            menu.classList.remove('show');
+        }
+    });
+
+    // Load shared user profile system
+    const script = document.createElement('script');
+    script.src = '/js/user-profile.js';
+    script.onload = function() {
+        if (typeof initializeUserProfile === 'function') {
+            initializeUserProfile();
+        }
+    };
+    document.head.appendChild(script);
+</script>
+
+</body>

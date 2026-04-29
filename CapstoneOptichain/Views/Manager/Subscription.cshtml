@@ -1,0 +1,1484 @@
+@using Newtonsoft.Json
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+@{
+    ViewBag.Title = "Subscription Details";
+    var token = Antiforgery.GetAndStoreTokens(Context);
+    var tokenValue = token.RequestToken;
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <script src="~/js/user-profile.js"></script>
+    
+    <script>
+        // Apply dark mode immediately to prevent flashing
+        (function() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.documentElement.className += ' dark-mode';
+                document.documentElement.style.backgroundColor = '#121212';
+                document.documentElement.style.color = '#e0e0e0';
+                
+                // Add styles directly to prevent any delay
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    body.dark-mode, html.dark-mode, .dark-mode {
+                        background-color: #121212 !important;
+                        color: #e0e0e0 !important;
+                    }
+                    .dark-mode .sidebar {
+                        background-color: #1e1e1e !important;
+                        border-color: #333 !important;
+                    }
+                    .dark-mode .main {
+                        background-color: #121212 !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        })();
+    </script>
+
+</head>
+
+<body>
+    @Html.AntiForgeryToken()
+    <div class="dashboard">
+    <aside class="sidebar">
+        <div>
+            <div class="logo">🏠</div>
+            <nav class="menu">
+                <a href="/Dashboard/Index3"><i class="fas fa-chart-line"></i> @T["Dashboard"]</a>
+                <a href="/Inventory/Index"><i class="fas fa-boxes"></i> @T["Inventory"]</a>
+                <a href="/Inventory/Index2"><i class="fas fa-file-alt"></i> @T["Reports"]</a>
+                <a href="/Order/Index"><i class="fas fa-pallet"></i> @T["Orders"]</a>
+                <a href="/Dashboard/OrderRequests"><i class="fas fa-clipboard-check"></i> @T["Order Requests"]</a>
+                <a href="/Category/Index"><i class="fas fa-tags"></i> @T["Categories"]</a>
+                <a href="/Order/Index2"><i class="fas fa-store-alt"></i> @T["Manage Store"]</a>
+                <a href="/Manager/Workers"><i class="fas fa-users"></i> @T["Workers"]</a>
+                <a class="active"><i class="fas fa-credit-card"></i> @T["Subscription"]</a>
+                <a href="/Manager/Support"><i class="fas fa-headset"></i> @T["Support"]</a>
+            </nav>
+        </div>
+        <div class="bottom-menu">
+            <div class="user-profile-dropdown">
+                                    <div class="user-profile-trigger" onclick="toggleUserProfile()">
+                        <img id="userProfileImage" src="/images/default-avatar.png" alt="@T["Profile"]" class="user-avatar">
+                        <span id="userName">@T["My Profile"]</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-profile-menu" id="userProfileMenu">
+                        <div class="user-profile-header">
+                            <span id="userFullName">@T["My Profile"]</span>
+                        </div>
+                        <a href="/Settings/Index" class="profile-menu-item">
+                        <i class="fas fa-cog"></i> @T["Settings"]
+                    </a>
+
+                    <a href="/Dashboard/LogOut" class="profile-menu-item">
+                        <i class="fas fa-sign-out-alt"></i> @T["Log out"]
+                    </a>
+                    </div>
+            </div>
+        </div>
+            </aside>
+
+
+
+        <main class="main">
+                    <header class="header">
+                <div class="search-and-toggle">
+                    <button id="darkToggle" title="@T["Toggle Dark Mode"]">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <div id="currentStoreInfo" style="font-weight: bold; color: #007bff; margin-left: 15px;">
+                        @if (!string.IsNullOrEmpty(ViewBag.SelectedStore as string))
+                        {
+                            <span>Current Store: @ViewBag.SelectedStore</span>
+                        }
+                        else if (TempData["SelectedStore"] != null)
+                        {
+                            <span>Current Store: @TempData["SelectedStore"]</span>
+                        }
+                        else if (Context.Session.GetString("SelectedStore") != null)
+                        {
+                            <span>Current Store: @Context.Session.GetString("SelectedStore")</span>
+                        }
+                        else
+                        {
+                            <span>No Store Selected!</span>
+                        }
+                    </div>
+                </div>
+            </header>
+
+        <section class="content-section">
+            <div class="page-header">
+                <h2><i class="fas fa-credit-card"></i>@T["Subscription Details"]</h2>
+                <a href="/Dashboard/Index3" class="btn-action btn-secondary">
+                    <i class="fas fa-arrow-left"></i> @T["Back to Dashboard"]
+                </a>
+            </div>
+
+            <div class="subscription-overview">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-info-circle"></i> @T["Current Subscription"]</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="subscription-status">
+                            @if (ViewBag.Subscription != null && ViewBag.Subscription.IsActive)
+                            {
+                                <div class="status-badge active">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>@T["Active"]</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="status-badge expired">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>@(ViewBag.Subscription?.Status ?? "No Subscription")</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="subscription-details">
+                            @if (ViewBag.Subscription != null)
+                            {
+                                var subscription = ViewBag.Subscription as CapstoneOptichain.Models.ManagerSubscription;
+                                var daysRemaining = (subscription.SubscriptionEndDate - DateTime.UtcNow).Days;
+                                
+                                <div class="detail-row">
+                                    <span class="label">@T["Plan Type"]:</span>
+                                    <span class="value">@subscription.PlanType Plan</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">@T["Monthly Fee"]:</span>
+                                    <span class="value">$@subscription.Amount.ToString("F2")</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">@T["Start Date"]:</span>
+                                    <span class="value">@subscription.SubscriptionStartDate.ToString("MMMM dd, yyyy")</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">@T["End Date"]:</span>
+                                    <span class="value">@subscription.SubscriptionEndDate.ToString("MMMM dd, yyyy")</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">@T["Days Remaining"]:</span>
+                                    <span class="value days-remaining @(daysRemaining <= 30 ? "warning" : "")">@daysRemaining days</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">@T["Max Stores"]:</span>
+                                    <span class="value">@subscription.MaxStores</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">@T["Max Workers per Store"]:</span>
+                                    <span class="value">@subscription.MaxWorkersPerStore</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="detail-row">
+                                    <span class="label">@T["Status"]:</span>
+                                    <span class="value">@T["No active subscription"]</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">@T["Action"]:</span>
+                                    <span class="value">@T["Use the payment section below to create a new subscription"]</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="usage-statistics">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chart-bar"></i>@T["Current Usage"]</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="usage-grid">
+                            <div class="usage-item">
+                                <i class="fas fa-store"></i>
+                                <h5>@T["Stores"]</h5>
+                                <p class="usage-value">@ViewBag.StoresCount</p>
+                                <p class="usage-limit">@(ViewBag.Subscription?.MaxStores ?? 3) @T["max"]</p>
+                            </div>
+                            <div class="usage-item">
+                                <i class="fas fa-users"></i>
+                                <h5>@T["Total Workers"]</h5>
+                                <p class="usage-value">@ViewBag.TotalWorkers</p>
+                                <p class="usage-limit">@(ViewBag.Subscription?.MaxWorkersPerStore ?? 5) @T["per store"]</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-features">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-star"></i> @T["Plan Features"]</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="features-grid">
+                            <div class="feature-item">
+                                <i class="fas fa-users"></i>
+                                <h5>@T["Workers Management"]</h5>
+                                <p>@T["Add and manage workers for your stores"]</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-boxes"></i>
+                                <h5>@T["Inventory Management"]</h5>
+                                <p>@T["Manage products and categories"]</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-chart-line"></i>
+                                <h5>@T["Business Analytics"]</h5>
+                                <p>@T["Detailed reports and insights"]</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-headset"></i>
+                                <h5>@T["Customer Support"]</h5>
+                                <p>@T["Get help when you need it"]</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-mobile-alt"></i>
+                                <h5>@T["Mobile Access"]</h5>
+                                <p>@T["Access from anywhere"]</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <h5>@T["Data Security"]</h5>
+                                <p>@T["Enterprise-grade protection"]</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-credit-card"></i> @T["Pay Subscription"]</h4>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var sub = ViewBag.Subscription as CapstoneOptichain.Models.ManagerSubscription;
+                            var amountDue = sub?.Amount ?? 0m;
+                            var subId = sub?.ID ?? 0;
+                            var managerId = ViewBag.ManagerId ?? 0;
+                            
+                            // Debug information
+                            <script>
+                                console.log('ViewBag data:', {
+                                    subscription: @Html.Raw(Json.Serialize(ViewBag.Subscription)),
+                                    managerId: @managerId,
+                                    subId: @subId,
+                                    amountDue: @amountDue
+                                });
+                            </script>
+                        }
+                        <div class="detail-row">
+                            <span class="label">@T["Amount Due"]:</span>
+                            <span class="value">$@(amountDue > 0 ? amountDue.ToString("F2") : "29.99")</span>
+                        </div>
+                        <div class="payment-choice" style="margin: 15px 0; display:flex; gap:10px; flex-wrap:wrap;">
+                            <button class="btn-action btn-primary" onclick="selectPaymentMethod('Visa')"><i class="fas fa-credit-card"></i> @T["Visa"]</button>
+                            <button class="btn-action btn-primary" onclick="selectPaymentMethod('VodafoneCash')"><i class="fas fa-mobile-alt"></i> @T["Vodafone Cash"]</button>
+                            <button class="btn-action btn-primary" onclick="selectPaymentMethod('Fawry')"><i class="fas fa-barcode"></i> @T["Fawry"]</button>
+                        </div>
+                        <div id="visaPanel" style="display:none; margin-top:10px;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>@T["Card Number"]</label>
+                                    <input type="text" id="visaNumber" class="form-control" placeholder="@T["1234 5678 9012 3456"]" maxlength="16" />
+                                </div>
+                                <div class="form-group">
+                                    <label>@T["Expiry"]</label>
+                                    <div style="display:flex; gap:8px;">
+                                        <select id="visaExpMonth" class="form-control">
+                                            <option value="">MM</option>
+                                            @for (int i = 1; i <= 12; i++){<option value="@i.ToString("00")">@i.ToString("00")</option>}
+                                        </select>
+                                        <select id="visaExpYear" class="form-control">
+                                            <option value="">YYYY</option>
+                                            @for (int i = DateTime.Now.Year; i <= DateTime.Now.Year + 10; i++){<option value="@i">@i</option>}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>@T["CVC"]</label>
+                                    <input type="text" id="visaCvc" class="form-control" placeholder="@T["CVC"]" maxlength="4" />
+                                </div>
+                            </div>
+                        </div>
+                        <div id="vodafonePanel" style="display:none; margin-top:10px;">
+                            <div class="detail-row">
+                                <span class="label">@T["Pay to (Admin Vodafone Cash)"]:</span>
+                                <span class="value">@ViewBag.VodafoneCashNumber</span>
+                            </div>
+                            <p class="text-muted" style="margin-top:8px;">@T["After sending, the admin will verify the transfer and your subscription will be renewed"].</p>
+                        </div>
+                        <div id="fawryPanel" style="display:none; margin-top:10px;">
+                            <div class="detail-row">
+                                <span class="label">@T["Pay using Fawry Code"]:</span>
+                                <span class="value">@ViewBag.FawryCode</span>
+                            </div>
+                            <p class="text-muted" style="margin-top:8px;">@T["Use the code above at any Fawry outlet. Admin will verify and renew your subscription"].</p>
+                        </div>
+                        <div style="margin-top:15px; display:flex; gap:10px;">
+                            <button class="btn-action btn-success" onclick="payNow(@managerId, @(subId > 0 ? subId : 0), @(amountDue > 0 ? amountDue : 29.99))"><i class="fas fa-check"></i> @T["Pay Now"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscription-actions">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-cog"></i> @T["Subscription Management"]</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-buttons">
+                            <button class="btn-action btn-success" onclick="payNow(@managerId, @(subId > 0 ? subId : 0), @(amountDue > 0 ? amountDue : 29.99))">
+                                <i class="fas fa-credit-card"></i> @T["Pay Now"]
+                            </button>
+                            @if (subId > 0)
+                            {
+                                <button class="btn-action btn-warning" onclick="sendRenewalRequest()">
+                                    <i class="fas fa-paper-plane"></i> @T["Request Renewal"]
+                                </button>
+                            }
+                            <button class="btn-action btn-secondary" onclick="getHelp()">
+                                <i class="fas fa-question-circle"></i> @T["Get Help"]
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+    <script src="~/storeContext.js"></script>
+    <script>
+        function toggleUserProfile() {
+        const menu = document.getElementById('userProfileMenu');
+        menu.classList.toggle('show');
+    }
+
+    document.getElementById('darkToggle').addEventListener('click', function () {
+        document.body.classList.toggle('dark-mode');
+        document.documentElement.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        this.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        console.log('Dark mode toggled:', isDark);
+    });
+
+    // Calculate days remaining
+    function updateDaysRemaining() {
+        const endDate = new Date('2024-12-31');
+        const today = new Date();
+        const diffTime = endDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const daysElement = document.querySelector('.days-remaining');
+        if (daysElement) {
+            if (diffDays > 0) {
+                daysElement.textContent = `${diffDays} days`;
+                daysElement.className = 'value days-remaining';
+            } else {
+                daysElement.textContent = 'Expired';
+                daysElement.className = 'value days-remaining expired';
+            }
+        }
+    }
+
+    // Payment Modal Functions
+    function selectPaymentMethod(type) {
+        const panels = {
+            Visa: document.getElementById('visaPanel'),
+            VodafoneCash: document.getElementById('vodafonePanel'),
+            Fawry: document.getElementById('fawryPanel')
+        };
+        Object.values(panels).forEach(p => p.style.display = 'none');
+        if (panels[type]) panels[type].style.display = 'block';
+        window.__selectedMethod = type;
+    }
+    
+    // Subscription Management Functions
+    function renewSubscription() {
+        if (confirm('@T["Are you sure you want to renew your subscription?"]')) {
+            // TODO: Implement renewal logic
+                            alert('@T["Subscription renewal request sent!"]');
+        }
+    }
+    
+    function pauseSubscription() {
+        if (confirm('@T["Are you sure you want to pause your subscription?"]')) {
+            // TODO: Implement pause logic
+                            alert('@T["Subscription paused successfully!"]');
+        }
+    }
+    
+    function downloadInvoice() {
+        // TODO: Implement invoice download
+        alert('Invoice download started...');
+    }
+    
+    function getHelp() {
+        window.location.href = '/Manager/Support';
+    }
+    
+    // Card number formatting
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/(\d{4})/g, '$1 ').trim();
+        e.target.value = value;
+    });
+
+    async function payNow(managerId, subscriptionId, amount) {
+        console.log('Payment details:', { managerId, subscriptionId, amount, method: window.__selectedMethod });
+        
+        if (!window.__selectedMethod) { 
+            alert('Please choose a payment method first'); 
+            return; 
+        }
+        
+        // Get values from ViewBag if not passed as parameters
+        if (!managerId) managerId = @(ViewBag.ManagerId ?? 0);
+        if (!subscriptionId) subscriptionId = @(ViewBag.Subscription?.ID ?? 0);
+        if (!amount) amount = @(ViewBag.Subscription?.Amount ?? 0);
+        
+        if (!managerId || !subscriptionId || !amount) {
+            alert('Missing payment information. Please refresh the page and try again.');
+            console.error('Missing data:', { managerId, subscriptionId, amount });
+            return;
+        }
+        
+        try {
+            // Enhanced client-side validations per method
+            if (window.__selectedMethod === 'Visa') {
+                const num = document.getElementById('visaNumber').value.trim();
+                const mm = document.getElementById('visaExpMonth').value;
+                const yy = document.getElementById('visaExpYear').value;
+                const cvc = document.getElementById('visaCvc').value.trim();
+                
+                if (!num || !mm || !yy || !cvc) { 
+                    alert('Please fill all Visa card details'); 
+                    return; 
+                }
+                
+                // Validate card number (16 digits starting with 4)
+                const cleanNum = num.replace(/\s/g, '');
+                if (cleanNum.length !== 16 || !cleanNum.startsWith('4')) {
+                    alert('Invalid Visa card number. Must be 16 digits starting with 4.');
+                    return;
+                }
+                
+                // Validate expiry date
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                if (parseInt(yy) < currentYear || (parseInt(yy) === currentYear && parseInt(mm) < currentMonth)) {
+                    alert('Card has expired');
+                    return;
+                }
+                
+                // Validate CVC (3-4 digits)
+                if (cvc.length < 3 || cvc.length > 4 || !/^\d+$/.test(cvc)) {
+                    alert('Invalid CVC. Must be 3-4 digits.');
+                    return;
+                }
+                
+                // Prepare payment details for Visa
+                const paymentDetails = JSON.stringify({
+                    cardNumber: cleanNum,
+                    expiryMonth: mm,
+                    expiryYear: yy,
+                    cvc: cvc
+                });
+                
+                // Send payment with Visa details
+                await sendPayment(managerId, subscriptionId, amount, 'Visa', paymentDetails);
+                
+            } else if (window.__selectedMethod === 'VodafoneCash') {
+                // Manual transfer, no additional input required
+                await sendPayment(managerId, subscriptionId, amount, 'VodafoneCash', 'Manual transfer');
+                
+            } else if (window.__selectedMethod === 'Fawry') {
+                // Manual payment at Fawry, no additional input required
+                await sendPayment(managerId, subscriptionId, amount, 'Fawry', 'Manual Fawry payment');
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Payment validation failed: ' + error.message);
+        }
+    }
+
+    async function sendPayment(managerId, subscriptionId, amount, method, details) {
+        try {
+            console.log('Sending payment request:', { managerId, subscriptionId, amount, method, details });
+            
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            console.log('Anti-forgery token:', token);
+            
+            const paymentData = {
+                managerId: parseInt(managerId),
+                subscriptionId: parseInt(subscriptionId),
+                amount: parseFloat(amount),
+                paymentMethod: method,
+                paymentDetails: details
+            };
+            
+            console.log('Payment data to send:', paymentData);
+            
+            const response = await fetch('/Manager/ProcessPayment', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(paymentData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`@T["HTTP error! status:"] ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Payment response:', data);
+            
+            if (data.success) {
+                alert('@T["Payment submitted successfully! Admin will verify and process it."]');
+                // Reset form
+                resetPaymentForm();
+                // Reload page to show updated status
+                location.reload();
+            } else {
+                console.error('Payment failed:', data);
+                alert(data.message || 'Payment failed');
+            }
+        } catch (error) { 
+            console.error('Payment submission error:', error);
+                            alert('@T["Network error. Please try again. Error:"] ' + error.message); 
+        }
+    }
+
+    function resetPaymentForm() {
+        // Reset Visa form
+        document.getElementById('visaNumber').value = '';
+        document.getElementById('visaExpMonth').value = '';
+        document.getElementById('visaExpYear').value = '';
+        document.getElementById('visaCvc').value = '';
+        
+        // Hide all panels
+        document.getElementById('visaPanel').style.display = 'none';
+        document.getElementById('vodafonePanel').style.display = 'none';
+        document.getElementById('fawryPanel').style.display = 'none';
+        
+        // Reset selected method
+        window.__selectedMethod = null;
+    }
+
+    async function sendRenewalRequest() {
+        try {
+            const res = await fetch('/Manager/RequestSubscriptionRenewal', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': '@tokenValue' }
+            });
+            const data = await res.json();
+            if (data.success) alert('@T["Renewal request sent"]'); else alert(data.message || '@T["Failed to send request"]');
+                    } catch (e) { alert('@T["Network error"]'); }
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('paymentModal');
+        if (event.target === modal) {
+            closePaymentModal();
+        }
+    }
+    
+    // Apply dark mode immediately before DOM loads
+    (function() {
+        const isDark = localStorage.getItem('theme') === 'dark';
+        if (isDark) {
+            document.documentElement.classList.add('dark-mode');
+            if (document.body) {
+                document.body.classList.add('dark-mode');
+            }
+        }
+    })();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDaysRemaining();
+        
+        // Ensure dark mode is applied correctly
+        const isDark = localStorage.getItem('theme') === 'dark';
+        console.log('DOMContentLoaded - Theme from localStorage:', isDark);
+        
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            document.documentElement.classList.add('dark-mode');
+            const toggle = document.getElementById('darkToggle');
+            if (toggle) toggle.innerHTML = '<i class="fas fa-sun"></i>';
+            console.log('Dark mode applied on page load');
+        }
+        
+        // Force reapply styles after DOM is fully loaded
+        setTimeout(function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.documentElement.classList.add('dark-mode');
+                const toggle = document.getElementById('darkToggle');
+                if (toggle) toggle.innerHTML = '<i class="fas fa-sun"></i>';
+                console.log('Dark mode re-applied after timeout');
+            }
+        }, 100);
+    });
+</script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: white;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .menu a,
+        .sidebar .bottom-menu a {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            text-decoration: none;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sidebar .menu a.active,
+        .sidebar .menu a:hover {
+            background: #eef3ff;
+            color: #007bff;
+        }
+
+        .sidebar .menu a i,
+        .sidebar .bottom-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-and-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkToggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .content-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-action:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .card-header h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .subscription-overview {
+            margin-bottom: 20px;
+        }
+
+        .subscription-status {
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .subscription-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .value {
+            color: #007bff;
+            font-weight: 500;
+        }
+
+        .days-remaining.expired {
+            color: #dc3545;
+        }
+
+        .usage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .usage-item {
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .usage-item:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+
+        .usage-item i {
+            font-size: 2.5em;
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .usage-item h5 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .usage-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            margin: 10px 0;
+        }
+
+        .usage-limit {
+            color: #666;
+            font-size: 0.9em;
+            margin: 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .feature-item i {
+            font-size: 2rem;
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .feature-item h5 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .feature-item p {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .payment-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .current-payment h5 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .payment-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .payment-card i {
+            font-size: 1.5rem;
+            color: #007bff;
+        }
+
+        .payment-card .expiry {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .payment-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile-trigger:hover {
+            background-color: #eef3ff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        .user-profile-trigger span {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .user-profile-trigger i {
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .profile-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: #666;
+        }
+
+        .profile-menu-item:hover i {
+            color: #007bff;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode,
+        html.dark-mode,
+        .dark-mode {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .dark-mode body {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+        
+        .dark-mode .sidebar {
+            background-color: #1e1e1e !important;
+            border-color: #333 !important;
+        }
+        
+        .dark-mode .sidebar .menu a,
+        .dark-mode .sidebar .bottom-menu a {
+            color: #ccc !important;
+        }
+        
+        .dark-mode .sidebar .menu a:hover,
+        .dark-mode .sidebar .menu a.active {
+            background: #333 !important;
+            color: #fff !important;
+        }
+        
+        .dark-mode .main {
+            background-color: #121212 !important;
+        }
+        
+        .dark-mode .card {
+            background-color: #1e1e1e !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+        }
+        
+        .dark-mode .card-header {
+            background: #252525 !important;
+            border-color: #333 !important;
+        }
+        
+        .dark-mode .card-header h4 {
+            color: #e0e0e0 !important;
+        }
+        
+        .dark-mode .page-header h2 {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .sidebar,
+        html.dark-mode .sidebar {
+            background-color: #1e1e1e !important;
+            border-color: #333 !important;
+        }
+
+        body.dark-mode .sidebar .menu a,
+        body.dark-mode .sidebar .bottom-menu a,
+        html.dark-mode .sidebar .menu a,
+        html.dark-mode .sidebar .bottom-menu a {
+            color: #ccc !important;
+        }
+
+        body.dark-mode .sidebar .menu a:hover,
+        body.dark-mode .sidebar .menu a.active,
+        html.dark-mode .sidebar .menu a:hover,
+        html.dark-mode .sidebar .menu a.active {
+            background: #333 !important;
+            color: #fff !important;
+        }
+
+        body.dark-mode .main,
+        html.dark-mode .main {
+            background-color: #121212 !important;
+        }
+
+        body.dark-mode .card,
+        html.dark-mode .card {
+            background-color: #1e1e1e !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        body.dark-mode .card-header,
+        html.dark-mode .card-header {
+            background: #252525 !important;
+            border-color: #333 !important;
+        }
+
+        body.dark-mode .card-header h4,
+        html.dark-mode .card-header h4 {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .page-header h2,
+        html.dark-mode .page-header h2 {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .detail-row,
+        html.dark-mode .detail-row {
+            border-color: #333 !important;
+        }
+
+        body.dark-mode .label,
+        html.dark-mode .label {
+            color: #ccc !important;
+        }
+
+        body.dark-mode .value,
+        html.dark-mode .value {
+            color: #4dabf7 !important;
+        }
+
+        body.dark-mode .feature-item,
+        html.dark-mode .feature-item {
+            border-color: #333 !important;
+            background: #1e1e1e !important;
+        }
+
+        body.dark-mode .feature-item h5,
+        html.dark-mode .feature-item h5 {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .feature-item p,
+        html.dark-mode .feature-item p {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .payment-card {
+            background: #252525 !important;
+            border-color: #333 !important;
+        }
+
+        body.dark-mode .current-payment h5 {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .user-profile-menu {
+            background: #1e1e1e !important;
+        }
+
+        body.dark-mode .user-profile-header {
+            background: #252525 !important;
+            border-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .profile-menu-item {
+            color: #ccc !important;
+            border-color: #333 !important;
+        }
+
+        body.dark-mode .profile-menu-item:hover {
+            background: #252525 !important;
+            color: #fff !important;
+        }
+
+        body.dark-mode .usage-item {
+            background: #1e1e1e !important;
+            border-color: #333 !important;
+        }
+
+        body.dark-mode .usage-item h5 {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .usage-value {
+            color: #4dabf7 !important;
+        }
+
+        body.dark-mode .usage-limit {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .status-badge.active {
+            background: #1b5e20 !important;
+            color: #c8e6c9 !important;
+        }
+
+        body.dark-mode .status-badge.expired {
+            background: #b71c1c !important;
+            color: #ffcdd2 !important;
+        }
+
+        body.dark-mode .days-remaining.warning {
+            color: #ffab40 !important;
+        }
+
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .form-control {
+            background-color: #2d2d2d !important;
+            border-color: #444 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .form-control:focus {
+            border-color: #4dabf7 !important;
+        }
+
+        body.dark-mode .btn-action {
+            background-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .btn-action:hover {
+            background-color: #444 !important;
+        }
+
+        body.dark-mode .btn-success {
+            background: #2e7d32 !important;
+            color: #fff !important;
+        }
+
+        body.dark-mode .btn-primary {
+            background: #1976d2 !important;
+            color: #fff !important;
+        }
+
+        body.dark-mode .btn-warning {
+            background: #f57c00 !important;
+            color: #fff !important;
+        }
+
+        body.dark-mode .btn-secondary {
+            background: #424242 !important;
+            color: #fff !important;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Dark Mode Modal */
+        body.dark-mode .modal-content {
+            background-color: #1e1e1e;
+        }
+
+        body.dark-mode .modal-header {
+            background: #252525;
+            border-color: #333;
+        }
+
+        body.dark-mode .modal-header h3 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .form-control {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .form-control:focus {
+            border-color: #4dabf7;
+        }
+    </style>
+</body>

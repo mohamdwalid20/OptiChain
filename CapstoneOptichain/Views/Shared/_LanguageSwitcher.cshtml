@@ -1,0 +1,49 @@
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer T
+
+<div class="language-dropdown" style="position:relative;">
+    <button type="button" id="langToggle" class="btn-action btn-primary" style="padding:6px 10px; display:flex; align-items:center; gap:6px;">
+        <i class="fas fa-language"></i>
+        <span>@T["Language"]</span>
+    </button>
+    <div id="langMenu" style="position:absolute; top:36px; right:0; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.12); padding:8px; min-width:120px; display:none; z-index:999;">
+        <a href="#" onclick="window.setAppCulture && window.setAppCulture('ar'); return false;" style="display:block; padding:6px 8px; border-radius:6px; text-decoration:none; color:#333;">العربية</a>
+        <a href="#" onclick="window.setAppCulture && window.setAppCulture('en'); return false;" style="display:block; padding:6px 8px; border-radius:6px; text-decoration:none; color:#333;">English</a>
+    </div>
+</div>
+
+<script>
+(function(){
+    const btn = document.getElementById('langToggle');
+    const menu = document.getElementById('langMenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
+    });
+    document.addEventListener('click', function(){ menu.style.display = 'none'; });
+})();
+</script>
+
+<style>
+.language-dropdown .btn-action {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.language-dropdown .btn-action:hover {
+    background: #0056b3;
+}
+
+.language-dropdown #langMenu a:hover {
+    background: #f8f9fa;
+}
+</style>
